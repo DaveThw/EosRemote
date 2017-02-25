@@ -303,30 +303,24 @@
           var child = Interface.panels[i].children[j];
           
           //console.log( "CHECK", child.key, '/eos/out/active/cue/text' )
-          if( child.key === '/eos/out/active/cue/text' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, args );
-            // return;
-          }
-          if( child.key === '/eos/out/active/cue/text/number+label' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
-            // return;
-          }
-          if( child.key === '/eos/out/active/cue/text/number' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
-            // return;
-          }
-          if( child.key === '/eos/out/active/cue/text/label' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
-            // return;
-          }
-          if( child.key === '/eos/out/active/cue/text/time' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ res[5] ] );
-            // return;
+          switch (child.key) {
+            case '/eos/out/active/cue/text':
+              //console.log( child.key, args )
+              child.setValue.apply( child, args );
+              // return;
+              break;
+            case '/eos/out/active/cue/text/number+label':
+              child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
+              break;
+            case '/eos/out/active/cue/text/number':
+              child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
+              break;
+            case '/eos/out/active/cue/text/label':
+              child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
+              break;
+            case '/eos/out/active/cue/text/time':
+              child.setValue.apply( child, [ res[5] ] );
+              break;
           }
         }
       }
@@ -343,30 +337,40 @@
           var child = Interface.panels[i].children[j];
           
           //console.log( "CHECK", child.key, '/eos/out/pending/cue/text' )
-          if( child.key === '/eos/out/pending/cue/text' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, args );
-            // return;
+          switch (child.key) {
+            case '/eos/out/pending/cue/text':
+              //console.log( child.key, args )
+              child.setValue.apply( child, args );
+              // return;
+              break;
+            case '/eos/out/pending/cue/text/number+label':
+              child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
+              break;
+            case '/eos/out/pending/cue/text/number':
+              child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
+              break;
+            case '/eos/out/pending/cue/text/label':
+              child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
+              break;
+            case '/eos/out/pending/cue/text/time':
+              child.setValue.apply( child, [ res[5] ] );
+              break;
           }
-          if( child.key === '/eos/out/pending/cue/text/number+label' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
-            // return;
-          }
-          if( child.key === '/eos/out/pending/cue/text/number' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
-            // return;
-          }
-          if( child.key === '/eos/out/pending/cue/text/label' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
-            // return;
-          }
-          if( child.key === '/eos/out/pending/cue/text/time' ) {
-            //console.log( child.key, args )
-            child.setValue.apply( child, [ res[5] ] );
-            // return;
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/event/state'] = function(args) {
+      // console.log( args )
+      // liveBlind.setValue(args[0]==1 ? 'Live' : 'Blind')
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          if( child.key === '/osc/eos/state' ) {
+            if (args[0]===1) child.setValue.apply( child, ['Live'] );
+            else if (args[0]===1) child.setValue.apply( child, ['Blind'] );
+            else child.setValue.apply( child, args );
           }
         }
       }
@@ -457,13 +461,9 @@
       value: "???",
       vAlign: 'middle',
       size: fontSize,
-      key: '/osc/state',
+      key: '/osc/eos/state',
       stroke: '#fff',
     }) ); x+=1/2;
-    Interface.OSC.callbacks['/eos/out/event/state'] = function(args) {
-      // console.log( args )
-      liveBlind.setValue(args[0]==1 ? 'Live' : 'Blind')
-    }
 
     panel.add( timeLabel = new Interface.Label({
       bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
