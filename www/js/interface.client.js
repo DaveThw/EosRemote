@@ -1,14 +1,35 @@
 var expr, socketAndIPPort, socketString;
 
-expr = /[-a-zA-Z0-9.]+(:(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3}))/
+// expr = /[-a-zA-Z0-9.]+(:(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3}))/
 
-socketIPAndPort = expr.exec( window.location.toString() )[0];
-socketIPAndPort = socketIPAndPort.split(":");
+// socketIPAndPort = expr.exec( window.location.toString() )[0];
+// socketIPAndPort = socketIPAndPort.split(":");
 
 // This will connect to the simpleserver websocket
 // socketString = 'ws://' + socketIPAndPort[0] + ':' + (parseInt(socketIPAndPort[1]) + 1);
-// This will connect directly to a Node-RED websocket (called 'osc')
-socketString = 'ws://' + socketIPAndPort[0] + ':' + '1880/ws/osc';
+
+// This function found here:
+// http://stackoverflow.com/questions/523266/how-can-i-get-a-specific-parameter-from-location-search#answer-523293
+function getParameter(paramName) {
+  var searchString = window.location.search.substring(1),
+      i, val, params = searchString.split("&");
+
+  for (i=0;i<params.length;i++) {
+    val = params[i].split("=");
+    if (val[0] == paramName) {
+      return val[1];
+    }
+  }
+  return null;
+}
+
+socketServer = getParameter('server');
+if ( socketServer === null) socketServer = window.location.hostname
+socketPort = getParameter('port');
+if ( socketPort === null) socketPort = window.location.port
+
+// This will connect to a Node-RED websocket (called 'osc')
+socketString = (window.location.protocol=='https:'?'wss':'ws')+'://' + socketServer + (socketPort?':'+socketPort:'') + '/ws/osc';
 
 Interface.Socket = new WebSocket( socketString );
 
