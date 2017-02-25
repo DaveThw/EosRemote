@@ -164,6 +164,8 @@
     } else {
       console.log( "Websocket: Trying new connection at "+timeLabel.value+"..." );
       Interface.Socket = new WebSocket( socketString );
+      Interface.OSC.socket = Interface.Socket;
+      Interface.MIDI.socket = Interface.Socket;
     }
 
     Interface.Socket.onmessage = function (event) {
@@ -334,7 +336,7 @@
       //console.log( args )
       // first process the raw text a little...
       var res=args[0].match(/^([0-9]+)\/([0-9.]+)( (.*))? ([0-9.]+)$/);
-      console.log( res );
+      //console.log( res );
       // next, set any widgets that are just looking for the 'raw' text value:
       for(var i = 0; i < Interface.panels.length; i++) {
         for( var j = 0; j < Interface.panels[i].children.length; j++) {
@@ -951,7 +953,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "TCP Ping to Ion:",
+      value: "TCP Ping (RPi to Ion):",
       size: fontSize,
     }) );
     panel.add( tcpPingStatus = new Interface.Label({
@@ -969,7 +971,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "OSC Ping to Ion:",
+      value: "OSC Ping (Page to RPi):",
       size: fontSize,
     }) );
     panel.add( oscPingStatus = new Interface.Label({
@@ -980,10 +982,49 @@
       hAlign: 'left',
       timer: null,
       id: ''+Math.floor(Math.random() * 1000),
-      pingIon: function(id) {
+      pingRPi: function(id) {
         var currentTime = new Date();
 	var msTime = currentTime.getTime();
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        Interface.OSC.send( '/osc/ping', 'S', id+":"+msTime );
+        // statusPing.setValue(0)
+      },
+      oninit: function() {
+        setTimeout(this.pingRPi, 1000, this.id);
+        this.timer = setInterval(this.pingRPi, 5000, this.id);
+      },
+    }) );
+    Interface.OSC.callbacks['/osc/pong'] = function(args) {
+      // console.log( args )
+      var currentTime = new Date();
+      var ping = (""+args[0]).split(':');
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + currentTime.getTime() + " - " + args[0] + " = " + (currentTime.getTime() - args[0]) + "mS");
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + args[0] + ' - ' + (currentTime.getTime() - args[1]) + "mS");
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
+      if (ping[0] == oscPingStatus.id) {
+        oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        // statusPing.setValue(1)
+      }
+    }
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping (Page to Ion):",
+      size: fontSize,
+    }) );
+    panel.add( eosPingStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+      id: ''+Math.floor(Math.random() * 1000),
+      pingIon: function(id) {
+        var currentTime = new Date();
+	var msTime = currentTime.getTime();
+        eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/eos/ping', 'S', id+":"+msTime );
         // Interface.Socket.send( 
         //   JSON.stringify({ type:'socket', address:'/eos/ping', parameters:[ id+":"+msTime ] })
@@ -1001,11 +1042,11 @@
       // console.log( args )
       var currentTime = new Date();
       var ping = (""+args[0]).split(':');
-      // oscPingStatus.setValue(timeLabel.value + ' - ' + currentTime.getTime() + " - " + args[0] + " = " + (currentTime.getTime() - args[0]) + "mS");
-      // oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + args[0] + ' - ' + (currentTime.getTime() - args[1]) + "mS");
-      // oscPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
-      if (ping[0] == oscPingStatus.id) {
-        oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+      // eosPingStatus.setValue(timeLabel.value + ' - ' + currentTime.getTime() + " - " + args[0] + " = " + (currentTime.getTime() - args[0]) + "mS");
+      // eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + args[0] + ' - ' + (currentTime.getTime() - args[1]) + "mS");
+      // eosPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
+      if (ping[0] == eosPingStatus.id) {
+        eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
         statusPing.setValue(1)
       }
     }
