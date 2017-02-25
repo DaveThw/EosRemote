@@ -1,0 +1,1133 @@
+<html>
+<!-- Doesn't seem to work with <!DOCTYPE html> at the top... -->
+<head>
+  <title>Ion OSC Remote</title>
+  <meta charset="UTF-8">
+  <script src='js/interface.js'></script>
+  <script src='js/interface.client.js'></script>
+</head>
+<body style="padding: 0; margin: 0; height: 100%; background: black;">
+  <div id='tab_panel' class='tab_panel' style="width:100%; height:05%; display:'block'; margin:0; padding:0; position:'absolute'; left:0; top:0;"></div>
+  <div id='osc_panel' class='osc_panel' style="width:100%; height:95%; display:'block'; margin:0; padding:0; position:'absolute'; left:0; top:10%;"></div>
+  <script>    
+    /* You can manually send WebSocket messages with the following syntax:
+    *
+    *  Interface.Socket.send( 
+    *    JSON.stringify({ type:'socket', address:'/yourAddress', parameters:[ 0, 'test', {hello:'hi'} ] }) 
+    *  );
+    *
+    *  Interface.Socket is a normal WebSocket object, however, using the above syntax ensures that messages
+    *  will be distributed to all clients connected to the interface.js simpleserver
+    */
+    
+
+    var margin = 0.01;
+
+    tabPanel = new Interface.Panel({ useRelativeSizesAndPositions: true, container:document.querySelector("#tab_panel") });
+    panel1   = new Interface.Panel({ useRelativeSizesAndPositions: true, container:document.querySelector("#osc_panel") });
+    // panel1 = new Interface.Panel({ useRelativeSizesAndPositions: true });
+    panel2   = new Interface.Panel({ useRelativeSizesAndPositions: true, container:document.querySelector("#osc_panel") });
+    panel3   = new Interface.Panel({ useRelativeSizesAndPositions: true, container:document.querySelector("#osc_panel") });
+    panel4   = new Interface.Panel({ useRelativeSizesAndPositions: true, container:document.querySelector("#osc_panel") });
+
+    // var fontSize = Math.round(panel1.height / 40);
+    var fontSize = Math.min(Math.round(window.innerHeight / 40), Math.round(window.innerWidth / 25));
+
+    tabPanel.background = '#333';
+    tabPanel.canvas.style.width = '100%';
+    tabPanel.canvas.style.height = '100%';
+    tabPanel.canvas.style.display = 'block';
+    tabPanel.font = 'normal '+fontSize+'px sans-serif';
+
+    panel1.background = '#222';
+    // panel1.canvas.setAttribute("width", "100%");
+    // panel1.canvas.setAttribute("height", "100%");
+    panel1.canvas.style.width = '100%';
+    panel1.canvas.style.height = '100%';
+    panel1.font = 'normal '+fontSize+'px sans-serif';
+
+    panel2.background = '#222';
+    panel2.canvas.style.width = '100%';
+    panel2.canvas.style.height = '100%';
+    panel2.font = 'normal '+fontSize+'px sans-serif';
+
+    panel3.background = '#222';
+    panel3.canvas.style.width = '100%';
+    panel3.canvas.style.height = '100%';
+    panel3.font = 'normal '+fontSize+'px sans-serif';
+
+    panel4.background = '#222';
+    panel4.canvas.style.width = '100%';
+    panel4.canvas.style.height = '100%';
+    panel4.font = 'normal '+fontSize+'px sans-serif';
+
+    x_base=.00; y_base=.10; button_width=.20; button_height=.80; margin=0.01;
+    x=0; y=0; panel=tabPanel;
+    function tabChange(setHash) {
+      if (setHash || setHash===undefined) window.location.hash=this.label.toLowerCase();
+      for( var j = 0; j < tabPanel.children.length; j++) {
+        var child = tabPanel.children[j];
+        
+        //console.log( "CHECK", child.key, msg.address )
+        if (child.page) {
+          if( child === this ) {
+            child.page.canvas.style.display = 'block';
+            child.page.active = true;
+            child.setValue(1, false);
+            child.page.refresh();
+          } else {
+            child.page.canvas.style.display = 'none';
+            child.page.active = false;
+            child.setValue(0, false);
+          }
+        }
+      }
+    }
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page1',
+      mode: 'toggle',
+      label: 'Control',
+      page: panel1,
+      onvaluechange: tabChange,
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page2',
+      mode: 'toggle',
+      label: 'Smoke',
+      page: panel2,
+      onvaluechange: tabChange,
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page3',
+      mode: 'toggle',
+      label: 'Faders',
+      page: panel3,
+      onvaluechange: tabChange,
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page4',
+      mode: 'toggle',
+      label: 'Status',
+      page: panel4,
+      onvaluechange: tabChange,
+    }) );
+/*
+    panel.add( new Interface.Menu({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-5*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page',
+      options: [ "Control", "Smoke", "Faders", "Status" ],
+      pages:   [ panel1,    panel2,  panel3,   panel4   ],
+      size: fontSize,
+    }) );
+*/
+    panel.add( statusWebsocket = new Interface.Button({
+      bounds: [0.95, 0.1, 0.04, 0.2],
+//      target: "WebSocket", key: '/osc/page4',
+      mode: 'toggle',
+      background: '#f00', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#0f0',       // fill colour (when pressed)
+      changeValue: function( xOffset, yOffset ) {},
+    }) );
+    panel.add( statusPing = new Interface.Button({
+      bounds: [0.95, 0.4, 0.04, 0.2],
+//      target: "WebSocket", key: '/osc/page4',
+      mode: 'toggle',
+      background: '#060', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#0f0',       // fill colour (when pressed)
+      changeValue: function( xOffset, yOffset ) {},
+    }) );
+    panel.add( statusReceived = new Interface.Button({
+      bounds: [0.95, 0.7, 0.04, 0.2],
+//      target: "WebSocket", key: '/osc/page4',
+      mode: 'toggle',
+      background: '#060', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#0f0',       // fill colour (when pressed)
+      changeValue: function( xOffset, yOffset ) {},
+      timeout: null,
+    }) );
+
+    function hashChange() {
+      var hash=window.location.hash.replace(/^#/,"");
+      var tab=tabPanel.children[0];
+      if ( hash != "") {
+        for ( var child in tabPanel.children) {
+          if ( tabPanel.children[child].label !== null ) {
+            if ( tabPanel.children[child].label.toLowerCase() == hash) tab=tabPanel.children[child];
+          }
+        }
+      }
+      tabChange.call(tab, false);
+    }
+    hashChange();
+    window.onhashchange = hashChange;
+
+    Interface.OSC._receive = function( data ) {
+      var msg = JSON.parse( data );
+
+      if ( statusReceived.timeout ) clearTimeout(statusReceived.timeout)
+      statusReceived.setValue(1);
+      statusReceived.timeout = setTimeout( function() {statusReceived.timeout=null; statusReceived.setValue(0)}, 500);
+
+      if( msg.address in this.callbacks ) {
+        this.callbacks[ msg.address ]( msg.parameters );
+      }else{
+        for(var i = 0; i < Interface.panels.length; i++) {
+          for( var j = 0; j < Interface.panels[i].children.length; j++) {
+            var child = Interface.panels[i].children[j];
+            
+            //console.log( "CHECK", child.key, msg.address )
+            if( child.key === msg.address ) {
+              //console.log( child.key, msg.parameters )
+              child.setValue.apply( child, msg.parameters );
+              //return;
+            }
+          }
+        }
+        this.receive( msg.address, msg.typetags, msg.parameters );
+      }
+    }
+
+
+
+    panel=panel2;
+    x_base=.00; y_base=.10; button_width=.20; button_height=.80; margin=0.01;
+    x=0; y=0;
+    panel.add( smokeStatus = new Interface.Label({
+      bounds: [.20+margin, .10+margin, .60-2*margin, .10-2*margin],
+      value: "Smoke: ??",
+      size: fontSize,
+    }) );
+    Interface.OSC.callbacks['/eos/out/event/sub/5'] = function(args) {
+      // console.log( args )
+      smokeStatus.setValue(args[0]==1 ? 'SMOKE: ON!' : 'Smoke: Off')
+    }
+    panel.add( new Interface.Button({
+      bounds: [.20+margin, .20+margin, .60-2*margin, .60-2*margin],
+      target: "WebSocket", key: '/eos/sub/5/fire',
+      mode: 'momentary',
+      label: 'Smoke!',
+      background: '#900', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#f00',       // fill colour (when pressed)
+    }) );
+
+
+
+    panel=panel4;
+    x_base=.00; y_base=0.00; button_width=.20; button_height=.10; margin = 0.010;
+    x=0; y=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/reset',
+      mode: 'contact',
+      label: 'Reset',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user',
+      max: 0,
+      mode: 'contact',
+      label: 'User 0',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user',
+      max: 1,
+      mode: 'contact',
+      label: 'User 1',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user',
+      max: 2,
+      mode: 'contact',
+      label: 'User 2',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user',
+      max: 2400,
+      mode: 'contact',
+      label: 'User 2400',
+    }) );
+
+    x_base=.00; y_base=.10; button_width=.40; button_height=.05; margin=0.005;
+    x=0; y=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "My IP:",
+      size: fontSize,
+    }) );
+    panel.add( ipText = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??.??.??.??",
+      size: fontSize,
+      hAlign: 'left',
+      stroke: '#fff',
+      /* This code taken from: */
+      /*  http://stackoverflow.com/questions/391979/how-to-get-clients-ip-address-using-javascript-only#answer-32841164 */
+      oninit: function() {
+        var myPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection; //compatibility for firefox and chrome
+
+        if (!myPeerConnection) {
+          ipText.setValue('Cannot get IP address as no WebRTC support...');
+        } else {
+          ipText.setValue('WebRTC:');
+          var pc = new myPeerConnection({iceServers: []}),
+              noop = function() {},
+              localIPs = {},
+              // ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g,
+              ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/g,
+              key;
+          
+          function ipIterate(ip) {
+            if (!localIPs[ip]) {
+              console.log('IP: '+ip);
+              ipText.setValue(ipText.value+" "+ip);
+            }
+            localIPs[ip] = true;
+          }
+          
+          pc.createDataChannel(""); //create a bogus data channel
+          pc.createOffer(function(sdp) {
+            sdp.sdp.split('\n').forEach(function(line) {
+              if (line.indexOf('candidate') < 0) return;
+              line.match(ipRegex).forEach(ipIterate);
+            });
+            pc.setLocalDescription(sdp, noop, noop);
+          }, noop); // create offer and set local description
+          pc.onicecandidate = function(ice) { //listen for candidate events
+            if (!ice || !ice.candidate || !ice.candidate.candidate || !ice.candidate.candidate.match(ipRegex)) return;
+            ice.candidate.candidate.match(ipRegex).forEach(ipIterate);
+          };
+        }
+      },
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Tab Panel size:",
+      size: fontSize,
+    }) );
+    panel.add( tabPanelSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Canvas size:",
+      size: fontSize,
+    }) );
+    panel.add( canvasSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Viewport size:",
+      size: fontSize,
+    }) );
+    panel.add( viewportSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Window Inner size:",
+      size: fontSize,
+    }) );
+    panel.add( windowInnerSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Window Outer size:",
+      size: fontSize,
+    }) );
+    panel.add( windowOuterSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Scroll size:",
+      size: fontSize,
+    }) );
+    panel.add( scrollSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Ratios:",
+      size: fontSize,
+    }) );
+    panel.add( ratiosStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Font size:",
+      size: fontSize,
+    }) );
+    panel.add( fontSizeStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "User Agent:",
+      size: fontSize,
+    }) );
+    y++
+    panel.add( userAgentStatus = new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, (1.0)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      oninit: function() {
+        showStats();
+      },
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Websocket:",
+      size: fontSize,
+    }) );
+    panel.add( websocketStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "TCP Ping to Ion:",
+      size: fontSize,
+    }) );
+    panel.add( tcpPingStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    Interface.OSC.callbacks['/osc/ping/ion'] = function(args) {
+      // console.log( args )
+      tcpPingStatus.setValue(timeLabel.value + ' - ' + (args[0]===false ? 'Failed' : args[0]+'mS'));
+    }
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping to Ion:",
+      size: fontSize,
+    }) );
+    panel.add( oscPingStatus = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+      id: ''+Math.floor(Math.random() * 1000),
+      pingIon: function(id) {
+        var currentTime = new Date();
+	var msTime = currentTime.getTime();
+        oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        Interface.Socket.send( 
+          JSON.stringify({ type:'socket', address:'/eos/ping', parameters:[ id+":"+msTime ] })
+        );
+        // not quite sure why, but this doesn't seem to work right as parameters:[ msTime ], but does as parameters:[ ""+msTime ]
+        // my best guess is that OSC doesn't handle large integers well, but converting it to a string solves the problem..?
+        statusPing.setValue(0)
+      },
+      oninit: function() {
+        setTimeout(this.pingIon, 1000, this.id);
+        this.timer = setInterval(this.pingIon, 10000, this.id);
+      },
+    }) );
+    Interface.OSC.callbacks['/eos/out/ping'] = function(args) {
+      // console.log( args )
+      var currentTime = new Date();
+      var ping = args[0].split(':');
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + currentTime.getTime() + " - " + args[0] + " = " + (currentTime.getTime() - args[0]) + "mS");
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + args[0] + ' - ' + (currentTime.getTime() - args[1]) + "mS");
+      // oscPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
+      if (ping[0] == oscPingStatus.id) {
+        oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        statusPing.setValue(1)
+      }
+    }
+    y++;
+
+
+
+    panel=panel1;
+    x_base=.00; y_base=.00; button_width=.25; button_height=.05; margin = 0.005;
+    x=0; y=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "User:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, 0.10-2*margin, button_height-2*margin],
+      value: "?",
+      size: fontSize,
+      key: '/eos/out/user',
+      hAlign: 'left',
+      background: '#f00', // not used for a Label
+      stroke: '#fff',     // text colour
+      fill: '#00f',       // not used for a Label
+    }) );
+
+    // live / blind state
+    // panel.add( new Interface.Label({
+    panel.add( liveBlind = new Interface.Label({
+      bounds: [x_base+0.00+button_width+0.10+margin, y_base+y*button_height+margin, (0.5-button_width-0.10)-2*margin, button_height-2*margin],
+      value: "???",
+      size: fontSize,
+      key: '/osc/state',
+      stroke: '#fff',
+    }) );
+    Interface.OSC.callbacks['/eos/out/event/state'] = function(args) {
+      // console.log( args )
+      liveBlind.setValue(args[0]==1 ? 'Live' : 'Blind')
+    }
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.50+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Time:",
+      size: fontSize,
+    }) );
+    panel.add( timeLabel = new Interface.Label({
+      bounds: [x_base+0.50+button_width+margin, y_base+y*button_height+margin, (0.5-button_width)-2*margin, button_height-2*margin],
+      value: '??:??:??',
+      size: fontSize,
+      hAlign: 'left',
+      vAlign: 'top',
+      stroke: '#fff',
+      timer: null,
+      getCurrentTime: function(button) {
+        var currentTime = new Date();
+        var hours = currentTime.getHours();
+        var minutes = currentTime.getMinutes();
+        var seconds = currentTime.getSeconds();
+        var ampm = "am";
+        
+        if (hours >= 12) {
+          hours = hours - 12;
+          ampm = "pm";
+        }
+        if (hours == 0)
+          hours = 12;
+        
+        if (minutes < 10)
+          minutes = "0" + minutes;
+        
+        if (seconds < 10)
+          seconds = "0" + seconds;
+        
+        // if ((seconds % 10) == 0) showStats();
+
+        button.setValue(hours + ":" + minutes + ":" + seconds + " " + ampm);
+        
+      },
+      oninit: function() { this.getCurrentTime(this); this.timer = setInterval(this.getCurrentTime, 1000, this); },
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Show:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Show Name>",
+      size: fontSize,
+      key: '/eos/out/show/name',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Command:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Command Line Text>",
+      size: fontSize,
+      key: '/eos/out/cmd',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Channel:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Channel Text>",
+      size: fontSize,
+      key: '/eos/out/active/chan',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Current Cue:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Current Cue Text>",
+      size: fontSize,
+      key: '/eos/out/active/cue/text',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Cue Progress:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Slider({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Cue Progress>",
+      key: '/eos/out/active/cue',
+      isVertical: false,
+      stroke: '#fff',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Next Cue:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Next Cue Text>",
+      size: fontSize,
+      key: '/eos/out/pending/cue/text',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+
+    x_base=.00; y_base=0.40; button_width=.20; button_height=.10; margin = 0.010;
+    x=0; y=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/go_to_cue',
+      mode: 'momentary',
+      label: 'Go To Cue',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/cue',
+      mode: 'momentary',
+      label: 'Cue',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/group',
+      mode: 'momentary',
+      label: 'Group',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/time',
+      mode: 'momentary',
+      label: 'Time',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/macro',
+      mode: 'momentary',
+      label: 'Macro',
+    }) );
+
+    y++; x=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/+',
+      mode: 'momentary',
+      label: '+',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/thru',
+      mode: 'momentary',
+      label: 'Thru',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/-',
+      mode: 'momentary',
+      label: '-',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/\\',
+      mode: 'momentary',
+      label: '/',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/sneak',
+      mode: 'momentary',
+      label: 'Sneak',
+    }) );
+
+    y++; x=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/7',
+      mode: 'momentary',
+      label: '7',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/8',
+      mode: 'momentary',
+      label: '8',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/9',
+      mode: 'momentary',
+      label: '9',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/rem_dim',
+      mode: 'momentary',
+      label: 'Rem Dim',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/address',
+      mode: 'momentary',
+      label: 'Address',
+    }) );
+
+    y++; x=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/4',
+      mode: 'momentary',
+      label: '4',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/5',
+      mode: 'momentary',
+      label: '5',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/6',
+      mode: 'momentary',
+      label: '6',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/out',
+      mode: 'momentary',
+      label: 'Out',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/last',
+      mode: 'momentary',
+      label: 'Last',
+    }) );
+
+    y++; x=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/1',
+      mode: 'momentary',
+      label: '1',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/2',
+      mode: 'momentary',
+      label: '2',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/3',
+      mode: 'momentary',
+      label: '3',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/full',
+      mode: 'momentary',
+      label: 'Full',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/next',
+      mode: 'momentary',
+      label: 'Next',
+    }) );
+
+    y++; x=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/clear_cmd',
+      mode: 'momentary',
+      label: 'Clear',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/0',
+      mode: 'momentary',
+      label: '0',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/.',
+      mode: 'momentary',
+      label: '.',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/@',
+      mode: 'momentary',
+      label: 'At',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/enter',
+      mode: 'momentary',
+      label: 'Enter',
+    }) );
+
+
+    panel=panel3;
+    x_base=.00; y_base=0.00; button_width=.20; button_height=.10; margin = 0.010;
+    x=0; y=0;
+    var fader_bank=1; faders={};
+    faders.page={};
+    for (var page=1; page<=4; page++) {
+      panel.add( faders.page[page] = new Interface.Button({
+        bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+        target: "WebSocket", key: '/eos/fader/'+fader_bank+'/config/'+page+'/5',
+        mode: 'toggle',
+        label: 'Page '+page,
+        page: page,
+        onvaluechange: function() {
+          for ( var page in faders.page) {
+            faders.page[page].setValue(this.page==page ? 1 : 0);
+          }
+        },
+      }) );
+    }
+    panel.add( faderPageLabel = new Interface.Label({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: 'Page: ?',
+      size: fontSize,
+      vAlign: 'middle',
+    }) );
+    Interface.OSC.callbacks['/eos/out/fader/'+fader_bank] = function(args) {
+      // console.log( args )
+      faderPageLabel.setValue('Page: ' + args[0]);
+      for ( var page in faders.page) {
+        faders.page[page].setValue(args[0]==page ? 1 : 0);
+      }
+    }
+
+    x_base=.00; y_base=0.10; button_width=.20; button_height=.05; margin = 0.005;
+    x=0; y=0;
+    fader_height=10;
+
+    for (var fader=1; fader<=5; fader++) {
+    faders[fader] = {};
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height, button_width-2*margin, button_height],
+      value: "Fader "+fader,
+      key: '/eos/out/fader/'+fader_bank+'/'+fader+'/name',
+      size: fontSize,
+      vAlign: 'middle',
+    }) );
+    panel.add( faders[fader].fader = new Interface.Slider({
+      bounds: [x_base+x*button_width+margin, y_base+(y)*button_height+margin, button_width-2*margin, button_height*fader_height-2*margin],
+      value: 0,
+      key: '/eos/fader/'+fader_bank+'/'+fader,
+      stroke: '#fff',
+      fader: fader,
+      onvaluechange: function() {
+        faders[this.fader].value.setValue( (this.value*100).toString().substring(0, 4)+'%' );
+      },
+    }) );
+    y+=fader_height;
+    panel.add( faders[fader].value = new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height, button_width-2*margin, button_height],
+      value: "0",
+      size: fontSize,
+      vAlign: 'middle',
+    }) );
+
+/*
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/+%',
+      mode: 'momentary',
+      label: '+%',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/-%',
+      mode: 'momentary',
+      label: '-%',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/level',
+      mode: 'momentary',
+      label: 'Level',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/out',
+      mode: 'momentary',
+      label: 'Out',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/fire',
+      mode: 'momentary',
+      label: 'Fire',
+    }) );
+*/
+
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height*2-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/full',
+      mode: 'momentary',
+      label: 'Full',
+    }) );
+    y++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height*2-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/out',
+      mode: 'momentary',
+      label: 'Out',
+    }) );
+    y++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height*2-2*margin],
+      target: "WebSocket", key: '/eos/fader/'+fader_bank+'/'+fader+'/fire',
+      mode: 'momentary',
+      label: 'Fire',
+    }) );
+    y++;
+
+    x++; y=0;
+    
+    }
+    Interface.OSC.callbacks['/eos/fader/'+fader_bank+'/1'] = function(args) {
+      // console.log( args )
+      faders[1].fader.setValue( args[0] );
+      faders[1].value.setValue( (args[0]*100).toString().substring(0, 4)+'%' );
+    }
+    Interface.OSC.callbacks['/eos/fader/'+fader_bank+'/2'] = function(args) {
+      // console.log( args )
+      faders[2].fader.setValue( args[0] );
+      faders[2].value.setValue( (args[0]*100).toString().substring(0, 4)+'%' );
+    }
+    Interface.OSC.callbacks['/eos/fader/'+fader_bank+'/3'] = function(args) {
+      // console.log( args )
+      faders[3].fader.setValue( args[0] );
+      faders[3].value.setValue( (args[0]*100).toString().substring(0, 4)+'%' );
+    }
+    Interface.OSC.callbacks['/eos/fader/'+fader_bank+'/4'] = function(args) {
+      // console.log( args )
+      faders[4].fader.setValue( args[0] );
+      faders[4].value.setValue( (args[0]*100).toString().substring(0, 4)+'%' );
+    }
+    Interface.OSC.callbacks['/eos/fader/'+fader_bank+'/5'] = function(args) {
+      // console.log( args )
+      faders[5].fader.setValue( args[0] );
+      faders[5].value.setValue( (args[0]*100).toString().substring(0, 4)+'%' );
+    }
+
+
+
+    // override to process WebSocket messages. Messages that a client sends are not echoed back by the server,
+    // and are only sent to other connected clients.
+    Interface.Socket.receive = function( address, parameters ) {
+      console.log( address, parameters )
+    }
+
+    // might need to put our panel inside our own <div> with 100% width and height..?
+    window.onresize = function() {
+      canvasResize();
+      // panel1.redoBoundaries.call(panel1);
+      // tabPanel.redoBoundaries.call(tabPanel);
+      // panel1.canvas.setAttribute("width", "100%");
+      // panel1.canvas.setAttribute("height", "100%");
+      // panel1.refresh.call(panel1);
+      showStats();
+    };
+
+    Interface.Socket.onopen = function (event) {
+      Interface.Socket.send( 
+        JSON.stringify({ type:'socket', address:'/osc/status', parameters:[ 'init' ] })
+      );
+      // Interface.Socket.send( 
+      //   JSON.stringify({ type:'socket', address:'/eos/reset', parameters:[] })
+      // );
+      websocketStatus.setValue('Connected');
+      statusWebsocket.setValue(1);
+    };
+
+    Interface.Socket.onclose = function (event) {
+      websocketStatus.setValue('Closed');
+      statusWebsocket.setValue(0);
+    };
+
+    function showStats() {
+      var tabpanelHeight = document.querySelector("#tab_panel").clientHeight;
+      var tabpanelWidth = document.querySelector("#tab_panel").clientWidth;
+      var panelHeight = document.querySelector("#osc_panel").clientHeight;
+      var panelWidth = document.querySelector("#osc_panel").clientWidth;
+    //  var panelHeight = document.getElementsByTagName("div")[0].clientHeight;
+    //  var panelWidth = document.getElementsByTagName("div")[0].clientWidth;
+      var canvasWidth = panel1.canvas.width;
+      var canvasHeight = panel1.canvas.height;
+      var viewportWidth = document.documentElement.clientWidth;
+      var viewportHeight = document.documentElement.clientHeight;
+      var scrollHeight = document.documentElement.scrollHeight;
+      var windowHeight = window.outerHeight;
+      // var fontSize = Math.min(Math.round(panelHeight / 40), Math.round(panelWidth / 25));
+      var fontSize = Math.min(Math.round(window.innerHeight / 40), Math.round(window.innerWidth / 25));
+      var devicePixelRatio = window.devicePixelRatio || 1;
+      var context = panel1.canvas.getContext('2d');
+      var backingStoreRatio = context.webkitBackingStorePixelRatio ||
+                          context.mozBackingStorePixelRatio ||
+                          context.msBackingStorePixelRatio ||
+                          context.oBackingStorePixelRatio ||
+                          context.backingStorePixelRatio || 1;
+      var ratio = devicePixelRatio / backingStoreRatio;
+
+      scrollSizeStatus.setValue(document.documentElement.scrollWidth+' x '+scrollHeight+'px');
+      windowInnerSizeStatus.setValue(window.innerWidth+' x '+window.innerHeight+'px');
+      windowOuterSizeStatus.setValue(window.outerWidth+' x '+window.outerHeight+'px');
+      canvasSizeStatus.setValue(canvasWidth+' x '+canvasHeight+'px');
+      tabPanelSizeStatus.setValue(tabpanelWidth+' x '+tabpanelHeight+'px');
+      viewportSizeStatus.setValue(viewportWidth+' x '+viewportHeight+'px');
+      fontSizeStatus.setValue(fontSize+'px');
+      ratiosStatus.setValue(devicePixelRatio+' / '+backingStoreRatio);
+      userAgentStatus.setValue(navigator.userAgent);
+      // Dave's HTC:        Mozilla/5.0 (Linux; Android 5.0.2; HTC One Build/LRX22G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Mobile Safari/537.36
+      // Dave's Chromebook: Mozilla/5.0 (X11; CrOS x86_64 8743.85.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.101 Safari/537.36
+      // Hudl:              Mozilla/5.0 (Linux; Android 5.1; Hudl 2 Build/LMY47I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Safari/537.36
+      // Nath's iPhone: 
+      // iPad: 
+
+    };
+
+    function canvasResize() {
+    //  var fontSize = Math.min(Math.round(panelHeight / 40), Math.round(panelWidth / 25));
+      var fontSize = Math.min(Math.round(window.innerHeight / 40), Math.round(window.innerWidth / 25));
+
+      for (var i = 0; i < Interface.panels.length; i++) {
+        // panel1.font = 'normal '+fontSize+'px sans-serif';
+        // for(var j = 0; j < panel1.children.length; j++) {
+        //   if (panel1.children[j].size !== undefined) panel1.children[j].size=fontSize;
+        // }
+        Interface.panels[i].font = 'normal '+fontSize+'px sans-serif';
+        for (var j = 0; j < Interface.panels[i].children.length; j++) {
+          if (Interface.panels[i].children[j].size !== undefined) Interface.panels[i].children[j].size=fontSize;
+          if (Interface.panels[i].children[j].element !== undefined) {
+            Interface.panels[i].children[j].element.css({
+              fontSize: fontSize,
+              left: Interface.panels[i].children[j]._x() + Interface.panels[i].children[j].panel.x,
+              top: Interface.panels[i].children[j]._y() + Interface.panels[i].children[j].panel.y,
+              width: Interface.panels[i].children[j]._width(),
+              height: Interface.panels[i].children[j]._height(),
+            });
+          }
+        }
+        Interface.panels[i].redoBoundaries.call(Interface.panels[i]);
+      }
+    };
+
+  </script>
+</body>
+</html>
