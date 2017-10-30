@@ -290,10 +290,19 @@
     Interface.OSC.callbacks['/eos/out/active/cue/text'] = function(args) {
       //console.log( args )
       // first process the raw text a little...
-      var res=args[0].match(/^([0-9]+)\/([0-9.]+)( (.*))? ([0-9.]+) ([0-9.]+)%$/);
+      var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)?( (.*))? ([0-9.:]+) ([0-9.]+)%$/);
+      // res[0] = "<Original OSC String>"
+      // res[1] = "<Cue List>/" (if present)
+      // res[2] = "<Cue List>" (if present)
+      // res[3] = "<Cue Number>" (if present)
+      // res[4] = " <Cue Label>" (if present)
+      // res[5] = "<Cue Label>" (if present)
+      // res[6] = "<Cue Time>" (time remaining whilst cue is running, or programmed cue time once complete)
+      // res[7] = "<Cue Percentage Complete>" (whole number only - without trailing '%')
       //console.log( res );
+
 //      if (res) {
-//        top_tab_cue_text.setValue("Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:""));
+//        top_tab_cue_text.setValue("Q"+(res[1]=="2"?'':res[2]+'/')+(res[3]=="0"?' --':res[3])+(res[4]?res[4]:""));
 //      } else {
 //        top_tab_cue_text.setValue(args[0]);
 //      }
@@ -310,16 +319,16 @@
               // return;
               break;
             case '/eos/out/active/cue/text/number+label':
-              child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
+              child.setValue.apply( child, [ "Q"+(res[2]==undefined?'':res[2]+'/')+(res[3]==undefined?'--':res[3])+(res[4]?res[4]:"") ] );
               break;
             case '/eos/out/active/cue/text/number':
-              child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
+              child.setValue.apply( child, [ (res[2]==undefined?'':res[2]+'/')+(res[3]==undefined?'--':res[3]) ] );
               break;
             case '/eos/out/active/cue/text/label':
-              child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
+              child.setValue.apply( child, [ (res[5]?res[5]:"") ] );
               break;
             case '/eos/out/active/cue/text/time':
-              child.setValue.apply( child, [ res[5] ] );
+              child.setValue.apply( child, [ res[6] ] );
               break;
           }
         }
@@ -329,7 +338,15 @@
     Interface.OSC.callbacks['/eos/out/pending/cue/text'] = function(args) {
       //console.log( args )
       // first process the raw text a little...
-      var res=args[0].match(/^([0-9]+)\/([0-9.]+)( (.*))? ([0-9.]+)$/);
+      var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)( (.*))? ([0-9.:]+)$/);
+      // res[0] = "<Original OSC String>"
+      // res[1] = "<Cue List>/" (if present)
+      // res[2] = "<Cue List>" (if present)
+      // res[3] = "<Cue Number>"
+      // res[4] = " <Cue Label>" (if present)
+      // res[5] = "<Cue Label>" (if present)
+      // res[6] = "<Cue Time>" (programmed cue time)
+
       //console.log( res );
       // next, set any widgets that are just looking for the 'raw' text value:
       for(var i = 0; i < Interface.panels.length; i++) {
@@ -344,16 +361,16 @@
               // return;
               break;
             case '/eos/out/pending/cue/text/number+label':
-              child.setValue.apply( child, [ "Q"+(res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2])+(res[3]?res[3]:"") ] );
+              child.setValue.apply( child, [ "Q"+(res[2]==undefined?'':res[2]+'/')+(res[3]==undefined?'--':res[3])+(res[4]?res[4]:"") ] );
               break;
             case '/eos/out/pending/cue/text/number':
-              child.setValue.apply( child, [ (res[1]=="1"?'':res[1]+'/')+(res[2]=="0"?' --':res[2]) ] );
+              child.setValue.apply( child, [ (res[2]==undefined?'':res[2]+'/')+(res[3]==undefined?'--':res[3]) ] );
               break;
             case '/eos/out/pending/cue/text/label':
-              child.setValue.apply( child, [ (res[4]?res[4]:"") ] );
+              child.setValue.apply( child, [ (res[5]?res[5]:"") ] );
               break;
             case '/eos/out/pending/cue/text/time':
-              child.setValue.apply( child, [ res[5] ] );
+              child.setValue.apply( child, [ res[6] ] );
               break;
           }
         }
@@ -371,6 +388,39 @@
             if (args[0]===1) child.setValue.apply( child, ['Live'] );
             else if (args[0]===1) child.setValue.apply( child, ['Blind'] );
             else child.setValue.apply( child, args );
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/cmd'] = function(args) {
+      //console.log( args )
+      // first process the raw text a little...
+      var res=args[0][0].match(/^([^:]+): (([^ ]+) +([0-9.]+)) : (.*)$/);
+      // res == undefined, if no match found...
+      // res[0] = "<Original OSC String>"
+      // res[1] = "LIVE|BLIND|other..."
+      // res[2] = "[Cue|Sub|other...] <Number>"
+      // res[3] = "Cue|Sub|other..."
+      // res[4] = "<Cue (or whatever) Number>"
+      // res[5] = "<Command Line Text>"
+      // args[0][1] = "[0|1]" (0 for all okay, 1 for command line error)
+      //console.log( res );
+
+      // next, set any widgets that are just looking for the 'raw' text value:
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.key) {
+            case '/eos/out/cmd':
+              //console.log( child.key, args )
+              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[0]) + (args[0][1]==1 ? " *Error*" : "") ] );
+              // return;
+              break;
+            case '/eos/out/cmd/text':
+              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[5]) + (args[0][1]==1 ? " *Error*" : "") ] );
+              break;
           }
         }
       }
