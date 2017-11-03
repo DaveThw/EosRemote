@@ -7,6 +7,7 @@
 <!-- <head>-->
   <title>Ion OSC Remote</title>
 <!--  <meta charset="UTF-8">-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src='js/interface.js'></script>
   <script src='js/interface.client.js'></script>
   <style>
@@ -256,6 +257,7 @@
       // Hudl:              Mozilla/5.0 (Linux; Android 5.1; Hudl 2 Build/LMY47I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Safari/537.36
       // Nath's iPhone: 
       // iPad: 
+      // Chrome on Dave's PC: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari 537.36
 
     };
 
@@ -763,7 +765,7 @@
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
-    x_base=.00; y_base=.00; button_width=.20; button_height=.10; margin=0.010;
+    x_base=.00; y_base=.00; button_width=.20; button_height=.05; margin=0.010;
     x=0; y=0;
 
     panel.add( new Interface.Button({
@@ -801,7 +803,7 @@
       label: 'User 2400',
     }) );
 
-    x_base=.00; y_base=.10; button_width=.40; button_height=.05; margin=0.005;
+    x_base=.00; y_base=.05; button_width=.20; button_height=.035; margin=0.001;
     x=0; y=0;
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
