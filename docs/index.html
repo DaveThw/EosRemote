@@ -1125,6 +1125,23 @@
     }
     y++;
 
+    x_base=.00; y_base=.90; button_width=.20; button_height=.10; margin=0.010;
+    x=0; y=0;
+
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user/0/addr/300',
+      mode: 'toggle',
+      label: 'DMX300',
+    }) );
+
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/user/0/addr/301',
+      mode: 'toggle',
+      label: 'DMX301',
+    }) );
+
   return panel; }
 
 
