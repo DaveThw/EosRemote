@@ -29,6 +29,7 @@
   ~/EOSRemote $ ln -s $(pwd)/node-red/settings.js ~/.node-red/
   ~/EOSRemote $ ln -s $(pwd)/node-red/flows.json ~/.node-red/flows_$(hostname).json
   ```
+  - Note: This doesn't totally work - if you update anything on node-red, it appears that it deletes the old backup, **renames** the current flows file as the backup, and saves the new flows in a new file (with the same name) - this means that we wind up with the backup being linked back to our node-red directory after one change, and then no link after two changes...  Not the end of the world for deployment, but a bit annoying for developemnt...  Maybe look at changing the userDir option in the setting.js file..?
 - Link root web directory:
   ``` shell
   ~/EOSRemote $ ln -s $(pwd)/docs/ ~/www
