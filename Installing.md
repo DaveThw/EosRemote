@@ -29,6 +29,10 @@
   ~/EOSRemote $ ln -s $(pwd)/node-red/settings.js ~/.node-red/
   ~/EOSRemote $ ln -s $(pwd)/node-red/flows.json ~/.node-red/flows_$(hostname).json
   ```
+- Link root web directory:
+  ``` shell
+  ~/EOSRemote $ ln -s $(pwd)/docs/ ~/www
+  ```
 - Use npm to install necessary node-red nodes, as listed in node-red/package.js (*a bit of guess work here* - **untested**)
   ``` shell
   ~/EOSRemote $ cd ~/.node-red
