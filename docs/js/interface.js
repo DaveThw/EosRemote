@@ -3013,7 +3013,7 @@ Interface.Label = function() {
       
       this.ctx.clip();
       
-      this.ctx.clearRect(rect.x, rect.y, rect.width, rect.height * 1.2);      
+      this.ctx.clearRect(rect.x, rect.y, rect.width+1, rect.height * 1.2);
       
       this.ctx.fillStyle = this._stroke();
       this.ctx.fillText(this.value, x, y);
