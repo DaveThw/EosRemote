@@ -12,7 +12,7 @@
   ~ $ unzip EOSRemote.zip
   ~ $ mv EOSRemote-master EOSRemote
   ```
-- Install/upgrade/update node-red (if not yet done...) - see [nodered.org/docs/hardware/raspberrypi](https://nodered.org/docs/hardware/raspberrypi)
+- Install/upgrade/update node-red (if not yet done...) - see <https://nodered.org/docs/hardware/raspberrypi>
   ``` shell
   ~ $ bash <(curl -sL https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/update-nodejs-and-nodered)
   ```
@@ -41,10 +41,24 @@
   ~/.node-red $ cd
   ~ $ sudo systemctl enable nodered.service
   ```
+- Create a Certificate Authority, a Private Key and a Certificate, for Node-Red to use HTTPS
+  - See notes here: [Securing Node-Red - Create Certificates](https://davethw.github.io/theatre-royal/eos-remote/securing-nodered.html#create-certificates-for-node-red-to-use)
+- Install new Certificate Authority on devices that might need access without HTTPS errors!
+  - See: [Securing Node-Red - Install Certificate Authority](https://davethw.github.io/theatre-royal/eos-remote/securing-nodered.html#install-our-certificate-authority-certificate-on-any-devices-necessary)
+- Connect the ethernet port on the Raspberry Pi to the lighting network
+  - Better to use an ethernet connection, rather than wifi, for reliability and speed - but might work with wifi if necessary
+  - Probably useful to allocate a fixed IP address - I've used 10.101.1.2
+- If wanted, plug a wifi dongle into the Raspberry Pi to connect to a separate network (maybe with internet access...)
+  - Again, probably useful to allocate a fixed IP address - I've used 192.168.1.2
+  - You'll probably need to tweak some network metrics to make internet access work - see here: [Network Metrics](https://davethw.github.io/theatre-royal/eos-remote/network-metrics.html)
+- In theory it might be useful/nice to give the Raspberry Pi a nice hostname ('eosremote', for example!) - however I generally haven't managed to use this hostname to access the Raspberry Pi so far, so this may need some work...
+  - Go the the Application Menu -> Preferences -> Raspberry Pi Configuration -> System -> Hostname
 - Start node-red!
   ``` shell
   ~ $ node-red-start
   ```
-- Create / Install CA on devices that might need access without HTTPS errors...
-- The EOSRemote web-app can be found at something like: [https://192.168.1.2:1880](https://192.168.1.2:1880)
-- And the Node-RED interface can be found at: [https://192.168.1.2:1880/node-red/](https://192.168.1.2:1880/node-red/)
+
+## Then, to access the Web App
+- The EOSRemote Web App can be found at something like: <https://192.168.1.2:1880>
+- Or alternatively, using the current GitHub code: <https://davethw.github.io/EOSRemote/?server=192.168.1.2&port=1880> - this may mean that you don't need to install the Certificate Authority to avoid security warnings..?
+- And the Node-RED interface can be found at: <https://192.168.1.2:1880/node-red/>
