@@ -5952,12 +5952,12 @@
         "id": "fd849a70.a82f58",
         "type": "debug",
         "z": "9ebef505.81b038",
-        "name": "",
+        "name": "/eos/out/active/cue/text",
         "active": false,
         "console": "false",
         "complete": "payload",
-        "x": 590,
-        "y": 40,
+        "x": 1050,
+        "y": 120,
         "wires": []
     },
     {
@@ -6065,9 +6065,9 @@
         "y": 80,
         "wires": [
             [
-                "fd849a70.a82f58",
                 "230c5a46.36ca46",
-                "b9d93e1a.82044"
+                "b9d93e1a.82044",
+                "2dd7b345.7e86fc"
             ]
         ]
     },
@@ -6354,6 +6354,108 @@
         "complete": "status.text",
         "x": 240,
         "y": 480,
+        "wires": []
+    },
+    {
+        "id": "2dd7b345.7e86fc",
+        "type": "switch",
+        "z": "9ebef505.81b038",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "/eos/out/ping",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "/eos/out/active/chan",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "/eos/out/active/cue/text",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "/eos/out/cmd",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 5,
+        "x": 830,
+        "y": 60,
+        "wires": [
+            [
+                "38d0bace.be4596"
+            ],
+            [
+                "84938bbb.e63158"
+            ],
+            [
+                "fd849a70.a82f58"
+            ],
+            [
+                "28666e76.732e02"
+            ],
+            [
+                "c3b3d947.f7ea38"
+            ]
+        ]
+    },
+    {
+        "id": "38d0bace.be4596",
+        "type": "debug",
+        "z": "9ebef505.81b038",
+        "name": "/eos/out/ping",
+        "active": false,
+        "console": "false",
+        "complete": "payload",
+        "x": 1010,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "84938bbb.e63158",
+        "type": "debug",
+        "z": "9ebef505.81b038",
+        "name": "/eos/out/active/chan",
+        "active": false,
+        "console": "false",
+        "complete": "payload",
+        "x": 1040,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "28666e76.732e02",
+        "type": "debug",
+        "z": "9ebef505.81b038",
+        "name": "/eos/out/cmd",
+        "active": false,
+        "console": "false",
+        "complete": "payload",
+        "x": 1010,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "c3b3d947.f7ea38",
+        "type": "debug",
+        "z": "9ebef505.81b038",
+        "name": "Other OSC messages",
+        "active": false,
+        "console": "false",
+        "complete": "payload",
+        "x": 1040,
+        "y": 200,
         "wires": []
     }
 ]
