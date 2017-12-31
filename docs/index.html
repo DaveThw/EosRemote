@@ -313,7 +313,14 @@
     Interface.OSC.callbacks['/eos/out/active/cue/text'] = function(args) {
       //console.log( args )
       // first process the raw text a little...
-      var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)?( (.*))? ([0-9.:]+) ([0-9.]+)%$/);
+      if ( args[0] == "" ) {
+        var res=["",undefined,undefined,undefined,undefined,undefined,undefined,undefined];
+      } else {
+        var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)?( (.*))? ([0-9.:]+) ([0-9.]+)%$/);
+      }
+      if ( res === null ) {
+        res=[args[0],undefined,undefined,undefined,undefined,undefined,undefined,undefined];
+      }
       // res[0] = "<Original OSC String>"
       // res[1] = "<Cue List>/" (if present)
       // res[2] = "<Cue List>" (if present)
@@ -361,7 +368,14 @@
     Interface.OSC.callbacks['/eos/out/pending/cue/text'] = function(args) {
       //console.log( args )
       // first process the raw text a little...
-      var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)( (.*))? ([0-9.:]+)$/);
+      if ( args[0] == "" ) {
+        var res=["",undefined,undefined,undefined,undefined,undefined,undefined];
+      } else {
+        var res=args[0].match(/^(([0-9]+)\/)?([0-9.]+)( (.*))? ([0-9.:]+)$/);
+      }
+      if ( res === null ) {
+        res=[args[0],undefined,undefined,undefined,undefined,undefined,undefined];
+      }
       // res[0] = "<Original OSC String>"
       // res[1] = "<Cue List>/" (if present)
       // res[2] = "<Cue List>" (if present)
@@ -409,7 +423,8 @@
           
           if( child.key === '/osc/eos/state' ) {
             if (args[0]===1) child.setValue.apply( child, ['Live'] );
-            else if (args[0]===1) child.setValue.apply( child, ['Blind'] );
+            else if (args[0]===0) child.setValue.apply( child, ['Blind'] );
+            else if (args[0]==="") child.setValue.apply( child, ['OFF'] );
             else child.setValue.apply( child, args );
           }
         }
@@ -419,14 +434,22 @@
     Interface.OSC.callbacks['/eos/out/cmd'] = function(args) {
       //console.log( args )
       // first process the raw text a little...
-      var res=args[0][0].match(/^([^:]+): (([^ ]+) +([0-9.]+)) : (.*)$/);
-      // res == undefined, if no match found...
+      if ( args[0] == "" ) {
+        var res=["OFF","OFF",undefined,undefined,undefined,undefined,""];
+      } else {
+        var res=args[0][0].match(/^([^:]+): ((.+?)( +([0-9.]+))?) : (.*)$/);
+      }
+      // res == null, if no match found...
+      if ( res === null ) {
+        res=[args[0],undefined,undefined,undefined,undefined,undefined,undefined];
+      }
       // res[0] = "<Original OSC String>"
-      // res[1] = "LIVE|BLIND|other..."
-      // res[2] = "[Cue|Sub|other...] <Number>"
-      // res[3] = "Cue|Sub|other..."
-      // res[4] = "<Cue (or whatever) Number>"
-      // res[5] = "<Command Line Text>"
+      // res[1] = "LIVE|BLIND|other?.."
+      // res[2] = "[Cue|Sub|Setup|other...][  <Number>]"
+      // res[3] = "Cue|Sub|Setup|other..."
+      // res[4] = "  <Cue (or whatever) Number>" (if present)
+      // res[5] = "<Cue (or whatever) Number>" (if present)
+      // res[6] = "<Command Line Text>"
       // args[0][1] = "[0|1]" (0 for all okay, 1 for command line error)
       //console.log( res );
 
@@ -442,7 +465,7 @@
               // return;
               break;
             case '/eos/out/cmd/text':
-              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[5]) + (args[0][1]==1 ? " *Error*" : "") ] );
+              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[6]) + (args[0][1]==1 ? " *Error*" : "") ] );
               break;
           }
         }
