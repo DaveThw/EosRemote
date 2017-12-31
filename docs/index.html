@@ -424,7 +424,7 @@
           if( child.key === '/osc/eos/state' ) {
             if (args[0]===1) child.setValue.apply( child, ['Live'] );
             else if (args[0]===0) child.setValue.apply( child, ['Blind'] );
-            else if (args[0]==="") child.setValue.apply( child, ['OFF'] );
+            else if (args[0]==="") child.setValue.apply( child, ['Off'] );
             else child.setValue.apply( child, args );
           }
         }
