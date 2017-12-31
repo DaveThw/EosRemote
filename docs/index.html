@@ -461,11 +461,13 @@
           switch (child.key) {
             case '/eos/out/cmd':
               //console.log( child.key, args )
-              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[0]) + (args[0][1]==1 ? " *Error*" : "") ] );
+              if ( args[0][1]==1 ) child.stroke = child.stroke_error || "#f00"; else child.stroke = child.stroke_normal || child.panel.childStroke;
+              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[0]) ] );
               // return;
               break;
             case '/eos/out/cmd/text':
-              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[6]) + (args[0][1]==1 ? " *Error*" : "") ] );
+              if ( args[0][1]==1 ) child.stroke = child.stroke_error || "#f00"; else child.stroke = child.stroke_normal || child.panel.childStroke;
+              child.setValue.apply( child, [ (res==undefined ? args[0][0] : res[6]) ] );
               break;
           }
         }
@@ -1260,6 +1262,8 @@
       key: '/eos/out/cmd',
       hAlign: 'left',
       stroke: '#fff',
+      stroke_normal: '#fff',
+      stroke_error: '#f00',
     }) );
 
 
@@ -1783,6 +1787,8 @@
       hAlign: 'left',
       vAlign: 'middle',
       stroke: '#fff',
+      stroke_normal: '#fff',
+      stroke_error: '#f00',
     }) );
 
 
