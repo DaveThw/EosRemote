@@ -358,7 +358,7 @@
               child.setValue.apply( child, [ (res[5]?res[5]:"") ] );
               break;
             case '/eos/out/active/cue/text/time':
-              child.setValue.apply( child, [ res[6] ] );
+              child.setValue.apply( child, [ (res[6]?res[6]:"") ] );
               break;
           }
         }
@@ -407,7 +407,7 @@
               child.setValue.apply( child, [ (res[5]?res[5]:"") ] );
               break;
             case '/eos/out/pending/cue/text/time':
-              child.setValue.apply( child, [ res[6] ] );
+              child.setValue.apply( child, [ (res[6]?res[6]:"") ] );
               break;
           }
         }
