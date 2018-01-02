@@ -83,6 +83,7 @@
     panels[i++]    = make_control_panel();
     panels[i++]    = make_playback_panel();
     panels[i++]    = make_faders_panel();
+    panels[i++]    = make_macros_panel();
     // panels[i++]    = make_smoke_panel();
     panels[i++]    = make_stats_panel();
     panels['menu'] = make_menu_panel();
@@ -704,8 +705,8 @@
       bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
       target: "WebSocket", key: '/osc/page2',
       mode: 'momentary',
-      label: 'Smoke',
-      hash: 'smoke',
+      label: 'Playback',
+      hash: 'playback',
       page: panels[2],
       onvaluechange: menuItem_valueChange,
     }) );
@@ -713,8 +714,8 @@
       bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
       target: "WebSocket", key: '/osc/page3',
       mode: 'momentary',
-      label: 'Playback',
-      hash: 'playback',
+      label: 'Faders',
+      hash: 'faders',
       page: panels[3],
       onvaluechange: menuItem_valueChange,
     }) );
@@ -722,11 +723,22 @@
       bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
       target: "WebSocket", key: '/osc/page4',
       mode: 'momentary',
-      label: 'Faders',
-      hash: 'faders',
+      label: 'Macros',
+      hash: 'macros',
       page: panels[4],
       onvaluechange: menuItem_valueChange,
     }) );
+    /*
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/page5',
+      mode: 'momentary',
+      label: 'Smoke',
+      hash: 'smoke',
+      page: panels[5],
+      onvaluechange: menuItem_valueChange,
+    }) );
+    */
     panel.add( new Interface.Button({
       bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
       target: "WebSocket", key: '/osc/page5',
@@ -2003,6 +2015,471 @@
     }
 
   return panel; }
+
+
+
+
+/***************************************************************************************\
+*                                                                                       *
+*                                   MACROS PANEL                                        *
+*                                                                                       *
+\***************************************************************************************/
+
+  function make_macros_panel () {
+    
+    panel = new Interface.Panel({
+      useRelativeSizesAndPositions: true,
+      container:document.querySelector("#osc_panel"),
+    });
+    panel.background = '#222';
+    panel.canvas.style.width = '100%';
+    panel.canvas.style.height = '100%';
+    panel.font = 'normal '+fontSize+'px sans-serif';
+
+    var x_base, y_base, button_width, button_height, margin, x, y;
+
+    x_base=.00; y_base=.00; button_width=.25; button_height=.05; margin = 0.005;
+    x=0; y=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, 1.0-2*margin, button_height-2*margin],
+      value: "<Command Line Text>",
+      size: fontSize,
+      key: '/eos/out/cmd',
+      hAlign: 'left',
+      stroke: '#fff',
+      stroke_normal: '#fff',
+      stroke_error: '#f00',
+    }) );
+
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Macro bank:",
+      size: fontSize,
+    }) );
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "<Macro Bank>",
+      size: fontSize,
+      key: '/eos/out/ds/1',
+      hAlign: 'left',
+      stroke: '#fff',
+    }) );
+
+
+    ds_bank=1;
+    x_base=.00; y_base=0.10; button_width=.25; button_height=.10; margin = 0.010;
+    x=0; y=0;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/macro/flexi/1/8',
+      mode: 'momentary',
+      label: 'Initialise',
+    }) );
+    x++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/page/1',
+      mode: 'momentary',
+      label: 'Next Page',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/page/-1',
+      mode: 'momentary',
+      label: 'Prev. Page',
+    }) );
+
+
+    x_base=.00; y_base=0.20; button_width=1.0; button_height=.10; margin = 0.010;
+    label_width=.10;
+    x=0; y=0; ds=1;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+    y++; x=0;
+    panel.add( new Interface.Label({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, label_width-2*margin, button_height-2*margin],
+      value: "<"+ds+">",
+      size: fontSize,
+      key: '/eos/out/ds/'+ds_bank+'/'+ds+'/num',
+      // hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+    }) );
+    panel.add( new Interface.Button({
+      bounds: [x_base+(x++)*button_width+label_width+margin, y_base+y*button_height+margin, button_width-label_width-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/ds/'+ds_bank+'/'+ds,
+      mode: 'momentary',
+      label: 'Macro'+ds, label_key: '/eos/out/ds/'+ds_bank+'/'+ds,
+    }) );
+    ds++;
+
+
+    Interface.OSC.callbacks['/eos/out/ds/1/1'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/1':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/1/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/2'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/2':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/2/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/3'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/3':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/3/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/4'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/4':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/4/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/5'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/5':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/5/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/6'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/6':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/6/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/7'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/7':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/7/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/8'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/8':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/8/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/9'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/9':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/9/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+    Interface.OSC.callbacks['/eos/out/ds/1/10'] = function(args) {
+      //console.log( args )
+      // args[0][0] = "Macro Label [Macro Number]"
+      // args[0][1] = "Macro Number"
+
+      for(var i = 0; i < Interface.panels.length; i++) {
+        for( var j = 0; j < Interface.panels[i].children.length; j++) {
+          var child = Interface.panels[i].children[j];
+          
+          switch (child.label_key) {
+            case '/eos/out/ds/1/10':
+              child.label = args[0][0];
+              child.draw.apply( child );
+              break;
+          }
+          switch (child.key) {
+            case '/eos/out/ds/1/10/num':
+              child.setValue.apply( child, [ args[0][1] ] );
+              break;
+          }
+        }
+      }
+    }
+
+  return panel; }
+
 
 
 
