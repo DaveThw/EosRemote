@@ -64,11 +64,11 @@
 <body>
   <div id='tab_panel' class='tab_panel'></div>
   <div id='osc_panel' class='osc_panel'></div>
-  <script>    
+  <script>
     /* You can manually send WebSocket messages with the following syntax:
     *
-    *  Interface.Socket.send( 
-    *    JSON.stringify({ type:'socket', address:'/yourAddress', parameters:[ 0, 'test', {hello:'hi'} ] }) 
+    *  Interface.Socket.send(
+    *    JSON.stringify({ type:'socket', address:'/yourAddress', parameters:[ 0, 'test', {hello:'hi'} ] })
     *  );
     *
     *  Interface.Socket is a normal WebSocket object, however, using the above syntax ensures that messages
@@ -78,13 +78,13 @@
 
     var fontSize = Math.min(Math.round(window.innerHeight / 40), Math.round(window.innerWidth / 25));
 
-    var panels = {};
+    var panels = {}, i = 1;
     panels['top']  = make_top_panel();
-    panels[1]      = make_control_panel();
-    panels[2]      = make_smoke_panel();
-    panels[3]      = make_playback_panel();
-    panels[4]      = make_faders_panel();
-    panels[5]      = make_stats_panel();
+    panels[i++]    = make_control_panel();
+    panels[i++]    = make_smoke_panel();
+    panels[i++]    = make_playback_panel();
+    panels[i++]    = make_faders_panel();
+    panels[i++]    = make_stats_panel();
     panels['menu'] = make_menu_panel();
 
 
@@ -202,11 +202,11 @@
     };
 
     Interface.Socket.onopen = function (event) {
-      Interface.Socket.send( 
+      Interface.Socket.send(
         JSON.stringify({ type:'socket', address:'/osc/init', parameters:[] })
       //  JSON.stringify({ type:'socket', address:'/osc/status', parameters:[ 'init' ] })
       );
-      // Interface.Socket.send( 
+      // Interface.Socket.send(
       //   JSON.stringify({ type:'socket', address:'/eos/reset', parameters:[] })
       // );
       websocketStatus.setValue(timeLabel.value+' - Connected');
@@ -276,8 +276,8 @@
       // Dave's HTC:        Mozilla/5.0 (Linux; Android 5.0.2; HTC One Build/LRX22G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Mobile Safari/537.36
       // Dave's Chromebook: Mozilla/5.0 (X11; CrOS x86_64 8743.85.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.101 Safari/537.36
       // Hudl:              Mozilla/5.0 (Linux; Android 5.1; Hudl 2 Build/LMY47I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Safari/537.36
-      // Nath's iPhone: 
-      // iPad: 
+      // Nath's iPhone:
+      // iPad:
       // Chrome on Dave's PC: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari 537.36
 
     };
@@ -1124,7 +1124,7 @@
 	var msTime = currentTime.getTime();
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/eos/ping', 'S', id+":"+msTime );
-        // Interface.Socket.send( 
+        // Interface.Socket.send(
         //   JSON.stringify({ type:'socket', address:'/eos/ping', parameters:[ id+":"+msTime ] })
         // );
         // not quite sure why, but this doesn't seem to work right as parameters:[ msTime ], but does as parameters:[ ""+msTime ]
