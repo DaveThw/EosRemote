@@ -41,9 +41,9 @@
   ~/.node-red $ cd
   ~ $ sudo systemctl enable nodered.service
   ```
-- Create a Certificate Authority, a Private Key and a Certificate, for Node-Red to use HTTPS
+- Create a Certificate Authority, a Private Key and a Certificate, for Node-Red to use HTTPS/WSS
   - See notes here: [Securing Node-Red - Create Certificates](https://davethw.github.io/theatre-royal/eos-remote/securing-nodered.html#create-certificates-for-node-red-to-use)
-- Install new Certificate Authority on devices that might need access without HTTPS errors!
+- Install new Certificate Authority on devices that might need access without HTTPS/WSS errors!
   - See: [Securing Node-Red - Install Certificate Authority](https://davethw.github.io/theatre-royal/eos-remote/securing-nodered.html#install-our-certificate-authority-certificate-on-any-devices-necessary)
 - Connect the ethernet port on the Raspberry Pi to the lighting network
   - Better to use an ethernet connection, rather than wifi, for reliability and speed - but might work with wifi if necessary
@@ -60,5 +60,5 @@
 
 ## Then, to access the Web App
 - The EOSRemote Web App can be found at something like: <https://192.168.1.2:1880>
-- Or alternatively, using the current GitHub code: <https://davethw.github.io/EOSRemote/?server=192.168.1.2&port=1880> - this may mean that you don't need to install the Certificate Authority to avoid security warnings..?
+- Or alternatively, using the current GitHub code: <https://davethw.github.io/EOSRemote/?server=192.168.1.2&port=1880> - if you haven't installed the Certificate Authority the WebSocket may fail to connect - you won't see any security warnings, except in the Console (within Developer Tools)
 - And the Node-RED interface can be found at: <https://192.168.1.2:1880/node-red/>
