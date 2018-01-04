@@ -78,8 +78,9 @@
 
     var fontSize = Math.min(Math.round(window.innerHeight / 40), Math.round(window.innerWidth / 25));
 
-    var panels = {}, i = 1;
+    var panels = {}, i = 0;
     panels['top']  = make_top_panel();
+    // numeric items will appear on the menu, in numeric order
     panels[i++]    = make_control_panel();
     panels[i++]    = make_playback_panel();
     panels[i++]    = make_faders_panel();
@@ -692,62 +693,18 @@
         pageChange(true, this);
       }
     }
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page1',
-      mode: 'momentary',
-      label: 'Control',
-      hash: 'control',
-      page: panels[1],
-      onvaluechange: menuItem_valueChange,
-    }) );
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page2',
-      mode: 'momentary',
-      label: 'Playback',
-      hash: 'playback',
-      page: panels[2],
-      onvaluechange: menuItem_valueChange,
-    }) );
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page3',
-      mode: 'momentary',
-      label: 'Faders',
-      hash: 'faders',
-      page: panels[3],
-      onvaluechange: menuItem_valueChange,
-    }) );
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page4',
-      mode: 'momentary',
-      label: 'Macros',
-      hash: 'macros',
-      page: panels[4],
-      onvaluechange: menuItem_valueChange,
-    }) );
-    /*
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page5',
-      mode: 'momentary',
-      label: 'Smoke',
-      hash: 'smoke',
-      page: panels[5],
-      onvaluechange: menuItem_valueChange,
-    }) );
-    */
-    panel.add( new Interface.Button({
-      bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
-      target: "WebSocket", key: '/osc/page5',
-      mode: 'momentary',
-      label: 'Stats',
-      hash: 'stats',
-      page: panels[5],
-      onvaluechange: menuItem_valueChange,
-    }) );
+
+    for (var i=0; panels.hasOwnProperty(i); i++) {
+      panel.add( new Interface.Button({
+        bounds: [x_base+x*button_width+margin, y_base+(y++)*button_height+margin, button_width-2*margin, button_height-2*margin],
+        target: "WebSocket", key: '/osc/page/'+panels[i].hash,
+        mode: 'momentary',
+        label: panels[i].label,
+        hash: panels[i].hash,
+        page: panels[i],
+        onvaluechange: menuItem_valueChange,
+      }) );
+    }
 
   return panel; }
 
@@ -771,6 +728,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Smoke';
+    panel.hash = 'smoke';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
@@ -820,6 +779,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Stats';
+    panel.hash = 'stats';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
@@ -1183,6 +1144,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Control';
+    panel.hash = 'control';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
@@ -1537,6 +1500,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Playback';
+    panel.hash = 'playback';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
@@ -1859,6 +1824,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Faders';
+    panel.hash = 'faders';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
@@ -2035,6 +2002,8 @@
     panel.canvas.style.width = '100%';
     panel.canvas.style.height = '100%';
     panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Macros';
+    panel.hash = 'macros';
 
     var x_base, y_base, button_width, button_height, margin, x, y;
 
