@@ -6349,7 +6349,7 @@
         "type": "debug",
         "z": "9ebef505.81b038",
         "name": "TCP status",
-        "active": true,
+        "active": false,
         "console": "false",
         "complete": "status.text",
         "x": 240,
@@ -6456,6 +6456,53 @@
         "complete": "payload",
         "x": 1040,
         "y": 200,
+        "wires": []
+    },
+    {
+        "id": "f21551e4.3920e",
+        "type": "function",
+        "z": "9ebef505.81b038",
+        "name": "Recall Store",
+        "func": "var output=[];\nvar store=global.get(\"osc-store\") || {};\nvar val, addr;\n\noutput.push( {\n    topic: 'Full Store',\n    payload: store,\n} );\n    \nfor (var addr in store) {\n    output.push( {\n        topic: addr,\n        payload: store[addr],\n    } );\n}\n\nreturn [ output ];",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 410,
+        "y": 580,
+        "wires": [
+            [
+                "33187d4c.4c1762"
+            ]
+        ]
+    },
+    {
+        "id": "f311618f.20491",
+        "type": "inject",
+        "z": "9ebef505.81b038",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 220,
+        "y": 580,
+        "wires": [
+            [
+                "f21551e4.3920e"
+            ]
+        ]
+    },
+    {
+        "id": "33187d4c.4c1762",
+        "type": "debug",
+        "z": "9ebef505.81b038",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 610,
+        "y": 580,
         "wires": []
     }
 ]
