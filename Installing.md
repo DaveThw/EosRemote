@@ -3,14 +3,14 @@
 - Clone from GitHub:
   ``` shell
   ~ $ cd
-  ~ $ git clone https://github.com/DaveThw/EOSRemote.git
+  ~ $ git clone https://github.com/DaveThw/EosRemote.git
   ```
   Or download from GitHub:
   ``` shell
   ~ $ cd
-  ~ $ wget -O EOSRemote.zip https://github.com/DaveThw/EOSRemote/archive/master.zip
-  ~ $ unzip EOSRemote.zip
-  ~ $ mv EOSRemote-master EOSRemote
+  ~ $ wget -O EosRemote.zip https://github.com/DaveThw/EosRemote/archive/master.zip
+  ~ $ unzip EosRemote.zip
+  ~ $ mv EosRemote-master EosRemote
   ```
 - Install/upgrade/update node-red (if not yet done...) - see <https://nodered.org/docs/hardware/raspberrypi>
   ``` shell
@@ -23,17 +23,17 @@
   ```
 - Link our node-red config files - could use -b option to ask ln to backup the originals:
   ``` shell
-  ~ $ cd ~/EOSRemote
-  ~/EOSRemote $ ln -s $(pwd)/node-red/package.js ~/.node-red/
-  ~/EOSRemote $ ln -s $(pwd)/node-red/settings.js ~/.node-red/
+  ~ $ cd ~/EosRemote
+  ~/EosRemote $ ln -s $(pwd)/node-red/package.js ~/.node-red/
+  ~/EosRemote $ ln -s $(pwd)/node-red/settings.js ~/.node-red/
   ```
 - Link root web directory:
   ``` shell
-  ~/EOSRemote $ ln -s $(pwd)/docs/ ~/www
+  ~/EosRemote $ ln -s $(pwd)/docs/ ~/www
   ```
 - Use npm to install necessary node-red nodes, as listed in node-red/package.js (*a bit of guess work here* - **untested**)
   ``` shell
-  ~/EOSRemote $ cd ~/.node-red
+  ~/EosRemote $ cd ~/.node-red
   ~/.node-red $ npm install
   ```
 - Set node-red to auto-start on bootup
@@ -59,6 +59,6 @@
   ```
 
 ## Then, to access the Web App
-- The EOSRemote Web App can be found at something like: <https://192.168.1.2:1880>
-- Or alternatively, using the current GitHub code: <https://davethw.github.io/EOSRemote/?server=192.168.1.2&port=1880> - if you haven't installed the Certificate Authority the WebSocket may fail to connect - you won't see any security warnings, except in the Console (within Developer Tools)
+- The EosRemote Web App can be found at something like: <https://192.168.1.2:1880>
+- Or alternatively, using the current GitHub code: <https://davethw.github.io/EosRemote/?server=192.168.1.2&port=1880> - if you haven't installed the Certificate Authority the WebSocket may fail to connect - you won't see any security warnings, except in the Console (within Developer Tools)
 - And the Node-RED interface can be found at: <https://192.168.1.2:1880/node-red/>

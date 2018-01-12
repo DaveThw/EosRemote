@@ -1,6 +1,6 @@
 {
-  "short_name": "Ion Remote",
-  "name":  "Dave's OSC Ion Remote App",
+  "short_name": "EosRemote",
+  "name":  "EosRemote Web App",
   "icons": [
     {
       "src": "/icons/android-icon-36x36.png",
