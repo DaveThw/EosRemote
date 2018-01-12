@@ -24,7 +24,7 @@
 - Link our node-red config files - could use -b option to ask ln to backup the originals:
   ``` shell
   ~ $ cd ~/EosRemote
-  ~/EosRemote $ ln -s $(pwd)/node-red/package.js ~/.node-red/
+  ~/EosRemote $ ln -s $(pwd)/node-red/package.json ~/.node-red/
   ~/EosRemote $ ln -s $(pwd)/node-red/settings.js ~/.node-red/
   ```
 - Link root web directory:
