@@ -1081,7 +1081,6 @@
       if (ping[0] == oscPingStatus.id) {
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
         oscPingStatus2.setValue("" + (currentTime.getTime() - ping[1]) + "mS");
-        lxdesk_status.setValue('On');
         // statusPing.setValue(1)
       }
     }
@@ -1128,6 +1127,7 @@
       if (ping[0] == eosPingStatus.id) {
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
         eosPingStatus2.setValue("" + (currentTime.getTime() - ping[1]) + "mS");
+        lxdesk_status.setValue('On');
         statusPing.setValue(1)
       }
     }
