@@ -208,6 +208,7 @@
       // );
       websocketStatus.setValue(timeLabel.value+' - Connected');
       websocketStatus2.setValue('Connected');
+      eosRemote_server.setValue('Connected');
       console.log( "Websocket: Connected at "+timeLabel.value );
       statusWebsocket.setValue(1);
     };
@@ -215,6 +216,7 @@
     Interface.Socket.onclose = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Closed');
       websocketStatus2.setValue('Closed');
+      eosRemote_server.setValue('Disconnected');
       console.log( "Websocket: Closed at "+timeLabel.value );
       statusWebsocket.setValue(0);
     };
@@ -222,6 +224,7 @@
     Interface.Socket.onerror = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Error');
       websocketStatus2.setValue('Error');
+      eosRemote_server.setValue('Connection Error');
       console.log( "Websocket: Error at "+timeLabel.value );
     };
 
@@ -2483,7 +2486,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "Websocket:",
+      value: "Websocket: ",
       size: fontSize,
       hAlign: 'right',
     }) );
@@ -2498,7 +2501,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "TCP Ping (RPi to Ion):",
+      value: "TCP Ping (RPi to Ion): ",
       size: fontSize,
       hAlign: 'right',
     }) );
@@ -2513,7 +2516,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "OSC Ping (Page to RPi):",
+      value: "OSC Ping (Page to RPi): ",
       size: fontSize,
       hAlign: 'right',
     }) );
@@ -2529,7 +2532,7 @@
 
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
-      value: "OSC Ping (Page to Ion):",
+      value: "OSC Ping (Page to Ion): ",
       size: fontSize,
       hAlign: 'right',
     }) );
@@ -2540,6 +2543,23 @@
       stroke: '#fff',
       hAlign: 'left',
       timer: null,
+    }) );
+    y++;
+
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "EosRemote Server: ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( eosRemote_server = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
     }) );
     y++;
 
