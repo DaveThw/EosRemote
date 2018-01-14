@@ -432,7 +432,7 @@
       // first process the raw text a little...
       if ( args[0] == "" ) {
         var res=["LX Desk Off (or disconnected from network)","Off",undefined,undefined,undefined,undefined,"LX Desk Off (or disconnected from network)"];
-      } else if ( args[0] == "LOCKED OUT" ) {
+      } else if ( args[0][0] == "LOCKED OUT" ) {
         var res=["LX Desk Locked","Locked",undefined,undefined,undefined,undefined,"LX Desk Locked"];
       } else {
         var res=args[0][0].match(/^([^:]+): ((.+?)( +([0-9.]+))?) : (.*)$/);
