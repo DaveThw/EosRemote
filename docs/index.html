@@ -80,6 +80,7 @@
     panels[i++]    = make_faders_panel();
     panels[i++]    = make_macros_panel();
     // panels[i++]    = make_smoke_panel();
+    panels[i++]    = make_power_panel();
     panels[i++]    = make_stats_panel();
     panels['menu'] = make_menu_panel();
 
@@ -206,18 +207,21 @@
       //   JSON.stringify({ type:'socket', address:'/eos/reset', parameters:[] })
       // );
       websocketStatus.setValue(timeLabel.value+' - Connected');
+      websocketStatus2.setValue(timeLabel.value+' - Connected');
       console.log( "Websocket: Connected at "+timeLabel.value );
       statusWebsocket.setValue(1);
     };
 
     Interface.Socket.onclose = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Closed');
+      websocketStatus2.setValue(timeLabel.value+' - Closed');
       console.log( "Websocket: Closed at "+timeLabel.value );
       statusWebsocket.setValue(0);
     };
 
     Interface.Socket.onerror = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Error');
+      websocketStatus2.setValue(timeLabel.value+' - Error');
       console.log( "Websocket: Error at "+timeLabel.value );
     };
 
@@ -1033,6 +1037,7 @@
     Interface.OSC.callbacks['/osc/ping/ion'] = function(args) {
       // console.log( args )
       tcpPingStatus.setValue(timeLabel.value + ' - ' + (args[0]===false ? 'Failed' : args[0]+'mS'));
+      tcpPingStatus2.setValue(timeLabel.value + ' - ' + (args[0]===false ? 'Failed' : args[0]+'mS'));
     }
     y++;
 
@@ -1053,6 +1058,7 @@
         var currentTime = new Date();
 	var msTime = currentTime.getTime();
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        oscPingStatus2.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/osc/ping', 'S', id+":"+msTime );
         // statusPing.setValue(0)
       },
@@ -1070,6 +1076,7 @@
       // oscPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
       if (ping[0] == oscPingStatus.id) {
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        oscPingStatus2.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
         // statusPing.setValue(1)
       }
     }
@@ -1092,6 +1099,7 @@
         var currentTime = new Date();
 	var msTime = currentTime.getTime();
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        eosPingStatus2.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/eos/ping', 'S', id+":"+msTime );
         // Interface.Socket.send(
         //   JSON.stringify({ type:'socket', address:'/eos/ping', parameters:[ id+":"+msTime ] })
@@ -1114,6 +1122,7 @@
       // eosPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
       if (ping[0] == eosPingStatus.id) {
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        eosPingStatus2.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
         statusPing.setValue(1)
       }
     }
@@ -2442,6 +2451,93 @@
         }
       }
     }
+
+  return panel; }
+
+
+
+
+/***************************************************************************************\
+*                                                                                       *
+*                                    POWER PANEL                                        *
+*                                                                                       *
+\***************************************************************************************/
+
+  function make_power_panel () {
+    
+    panel = new Interface.Panel({
+      useRelativeSizesAndPositions: true,
+      container:document.querySelector("#osc_panel"),
+    });
+    panel.background = '#222';
+    panel.canvas.style.width = '100%';
+    panel.canvas.style.height = '100%';
+    panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Power';
+    panel.hash = 'power';
+
+    var x_base, y_base, button_width, button_height, margin, x, y;
+
+    x_base=.00; y_base=.05; button_width=.20; button_height=.035; margin=0.001;
+    x=0; y=0;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Websocket:",
+      size: fontSize,
+    }) );
+    panel.add( websocketStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "TCP Ping (RPi to Ion):",
+      size: fontSize,
+    }) );
+    panel.add( tcpPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping (Page to RPi):",
+      size: fontSize,
+    }) );
+    panel.add( oscPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping (Page to Ion):",
+      size: fontSize,
+    }) );
+    panel.add( eosPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+    }) );
+    y++;
 
   return panel; }
 
