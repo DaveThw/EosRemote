@@ -20,11 +20,13 @@
   - Locale: en / GB / UTF-8
   - Timezone: GB
   - Keyboard: United Kingdom - English (UK)
-  - WiFi Country: GB Britain (UK)
-
-
-- VNC Server -> Sign In to account
+  - WiFi Country: GB Britain (UK)
 - Node-RED Update
+  - took about 26mins for me
+- VNC Server -> Sign In to account
+
+
+
 - Install EosRemote
   - follow / check my instructions!..
 - Create SSL Certificate for HTTPS/WSS
