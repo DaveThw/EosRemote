@@ -22,13 +22,26 @@
   - Keyboard: United Kingdom - English (UK)
   - WiFi Country: GB Britain (UK)
 - Node-RED Update
+  - From: https://nodered.org/docs/hardware/raspberrypi#raspbian
+  - `bash <(curl -sL https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/update-nodejs-and-nodered)`
   - took about 26mins for me
 - VNC Server -> Sign In to account
-
-
-
+  - useful for connecting from VNC Connect client!
 - Install EosRemote
   - follow / check my instructions!..
+  ```shell
+~ $ cd
+~ $ git clone https://github.com/DaveThw/EosRemote.git
+~ $ cd ~/EosRemote
+~/EosRemote $ ln -sb $(pwd)/node-red/package.json ~/.node-red/
+~/EosRemote $ ln -sb $(pwd)/node-red/settings.js ~/.node-red/
+~/EosRemote $ ln -s $(pwd)/docs/ ~/www
+~/EosRemote $ cd ~/.node-red
+~/.node-red $ npm install
+  ```
+  - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
+
+
 - Create SSL Certificate for HTTPS/WSS
   - for multiple IP addresses..?
 
