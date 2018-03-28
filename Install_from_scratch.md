@@ -29,7 +29,7 @@
   - useful for connecting from VNC Connect client!
 - Install EosRemote
   - follow / check my instructions!..
-  ```shell
+```shell
 ~ $ cd
 ~ $ git clone https://github.com/DaveThw/EosRemote.git
 ~ $ cd ~/EosRemote
@@ -38,7 +38,7 @@
 ~/EosRemote $ ln -s $(pwd)/docs/ ~/www
 ~/EosRemote $ cd ~/.node-red
 ~/.node-red $ npm install
-  ```
+```
   - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
 
 
