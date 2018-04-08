@@ -40,9 +40,124 @@
 ~/.node-red $ npm install
 ```
   - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
-
-
 - Create SSL Certificate for HTTPS/WSS
   - for multiple IP addresses..?
+```shell
+pi@eosremote:~ $ cd ~/EosRemote
+pi@eosremote:~/EosRemote $ mkdir ssl
+pi@eosremote:~/EosRemote $ cd ssl/
+pi@eosremote:~/EosRemote/ssl $ ls
+openssl-csr.cnf
+
+pi@eosremote:~/EosRemote/ssl $ openssl genrsa -out myCA.key 2048
+Generating RSA private key, 2048 bit long modulus
+.......................................+++
+............................................+++
+e is 65537 (0x010001)
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -x509 -sha256 -new -key myCA.key -out myCA.cer -days 365
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:UK
+State or Province Name (full name) [Some-State]:.
+Locality Name (eg, city) []:.
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:EosRemote
+Organizational Unit Name (eg, section) []:LAN Server
+Common Name (e.g. server FQDN or YOUR name) []:EosRemote - TRBSE
+Email Address []:eosremote@dave.thwaites.org.uk
+
+pi@eosremote:~/EosRemote/ssl $ openssl genrsa -out server.key 2048
+Generating RSA private key, 2048 bit long modulus
+.................+++
+........................+++
+e is 65537 (0x010001)
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN Server, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN Server, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN Server, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -extfile v3.ext -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN Server, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -req -sha256 -in server.csr -out server.cer -CAkey myCA.key -CA myCA.cer -extfile v3.ext -days 365 -CAcreateserial
+Signature ok
+subject=C = UK, O = EosRemote, OU = LAN Server, emailAddress = eosremote@dave.thwaites.org.uk, CN = eosremote
+Getting CA Private Key
+
+pi@eosremote:~/EosRemote/ssl $ cp server.key ~/.node-red/public/privatekey.pem
+pi@eosremote:~/EosRemote/ssl $ cp server.cer ~/.node-red/public/certificate.pem
+pi@eosremote:~/EosRemote/ssl $ cp myCA.cer ~/www
+pi@eosremote:~/EosRemote/ssl $ ls
+myCA.cer  myCA.key  myCA.srl  openssl-ca.cnf  openssl-csr.cnf  server.cer  server.csr  server.key  v3.ext
+
+pi@eosremote:~/EosRemote/ssl $ cat openssl-csr.cnf 
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+C=UK
+#ST=Suffolk
+#L=Bury St Edmunds
+O=EosRemote
+OU=LAN Server
+emailAddress=eosremote@dave.thwaites.org.uk
+CN = eosremote
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = eosremote
+DNS.2 = eosremote.local
+IP.1 = 192.168.1.2
+IP.2 = 192.168.1.80
+
+pi@eosremote:~/EosRemote/ssl $ cat v3.ext 
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = eosremote
+DNS.2 = eosremote.local
+IP.1 = 192.168.1.2
+IP.2 = 192.168.1.80
+
+pi@eosremote:~/EosRemote/ssl $ 
+
+```
 
 ... to be continued!
