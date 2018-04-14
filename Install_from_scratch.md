@@ -140,9 +140,9 @@ pi@eosremote:~/EosRemote/ssl $ mkdir CA/newcerts
 
 pi@eosremote:~/EosRemote/ssl $ openssl req -x509 -new -nodes -out ./CA/cacert.pem -days 3653 -config openssl-ca.cnf
 Generating a 2048 bit RSA private key
-..................................................................................................................................+++
-.....+++
-writing new private key to './CA/private/cakey.pem'
+.................................................................................................................................................................................................................................+++
+.....................+++
+writing new private key to '/home/pi/EosRemote/ssl/CA/private/cakey.pem'
 -----
 
 pi@eosremote:~/EosRemote/ssl $ openssl x509 -in ./CA/cacert.pem -noout -text
@@ -150,41 +150,41 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            b8:f9:df:34:c2:e9:6b:dd
+            cf:18:37:cc:57:cd:8a:e0
     Signature Algorithm: sha256WithRSAEncryption
         Issuer: C = UK, ST = Suffolk, L = Bury St Edmunds, O = EosRemote, OU = https://github.com/DaveThw/EosRemote/, emailAddress = eosremote@dave.thwaites.org.uk, CN = EosRemote Root CA
         Validity
-            Not Before: Apr 14 06:46:48 2018 GMT
-            Not After : Apr 14 06:46:48 2028 GMT
+            Not Before: Apr 14 07:15:47 2018 GMT
+            Not After : Apr 14 07:15:47 2028 GMT
         Subject: C = UK, ST = Suffolk, L = Bury St Edmunds, O = EosRemote, OU = https://github.com/DaveThw/EosRemote/, emailAddress = eosremote@dave.thwaites.org.uk, CN = EosRemote Root CA
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (2048 bit)
                 Modulus:
-                    00:ca:35:21:fd:0b:22:c7:bc:92:07:03:2b:28:ef:
-                    bc:39:32:73:fa:7f:de:98:c8:b6:23:61:a8:3a:d2:
-                    6c:a2:41:6b:64:ce:bf:74:a8:ad:83:5e:8d:7e:96:
-                    85:20:97:9c:46:2b:12:a3:fd:83:c4:1a:81:64:6e:
-                    37:0a:1b:b2:6b:b3:6a:f5:e4:97:9f:60:9e:d7:57:
-                    df:18:db:00:75:6b:09:c3:c9:b1:7e:03:7a:26:fa:
-                    9b:a2:aa:90:dd:1a:ac:71:6e:38:fe:e4:31:3c:5e:
-                    f4:88:73:cc:5e:31:c0:b4:57:6b:f6:bf:40:0c:65:
-                    64:5e:b8:b9:a8:af:b2:a6:2a:4d:cf:e7:ef:f5:a2:
-                    22:d0:06:a1:f1:91:69:d6:e4:8a:60:7e:c0:65:79:
-                    cf:d9:23:5a:42:ab:a9:59:fa:81:8f:a5:99:3a:1b:
-                    2a:2b:88:79:41:17:fa:5e:7f:76:b6:c8:c2:93:c9:
-                    2a:70:3f:83:ff:57:d3:61:35:eb:29:8e:98:ca:d5:
-                    f9:51:c8:d4:0b:37:f1:37:7f:0d:17:a0:bd:3e:01:
-                    24:9c:d2:2e:67:af:7c:fb:cb:b0:06:ec:68:a4:49:
-                    51:c5:ad:03:db:6c:ac:ba:b9:2e:84:a0:b5:54:07:
-                    b3:93:b5:fa:73:9f:04:7c:6c:04:26:56:20:11:b4:
-                    c2:83
+                    00:c8:45:8f:a5:5f:c0:65:92:5b:a3:27:bf:25:60:
+                    00:dc:09:0b:d2:a3:5c:b0:06:8f:d1:9a:43:76:45:
+                    d3:63:15:88:0b:d3:5f:17:db:a6:2a:bd:c7:a3:4e:
+                    8b:5e:e8:37:6a:db:da:40:61:4f:d1:e8:c3:2d:08:
+                    62:5a:f6:1a:96:d7:e5:2e:7f:72:d3:84:2e:93:38:
+                    de:f6:d1:70:26:76:c4:91:d5:70:11:a9:49:50:87:
+                    ca:ed:93:17:c7:6e:26:fe:c0:18:ca:0a:2c:a6:af:
+                    7c:4a:d3:43:9e:b7:41:fc:ec:8a:37:9f:d5:56:a0:
+                    aa:c3:63:bf:db:ea:1c:53:11:74:59:9a:27:d2:05:
+                    d8:88:dc:e0:25:43:16:dc:ea:44:a4:59:2d:7b:f4:
+                    cf:04:34:12:5f:b2:65:cc:84:b1:3d:06:22:fa:f5:
+                    cd:c3:6e:d4:3f:52:6e:6b:8c:7f:42:b5:45:b3:d8:
+                    b4:8a:9e:7f:64:ec:bd:c4:7f:54:91:f6:ee:8f:5b:
+                    a3:f3:fb:d9:42:19:ef:ec:ba:a9:5b:82:43:d2:f3:
+                    1a:62:ef:eb:0a:26:cd:ff:d8:8a:59:fe:a7:c1:b1:
+                    94:72:31:8d:bb:26:e5:c6:dc:4e:ec:d8:b4:85:43:
+                    df:97:d9:1c:62:35:8f:6c:ac:be:a4:65:67:53:67:
+                    c1:2f
                 Exponent: 65537 (0x10001)
         X509v3 extensions:
             X509v3 Subject Key Identifier: 
-                97:77:AD:95:B6:BE:0C:EC:C8:15:ED:FE:33:FC:AD:AA:74:43:75:0D
+                2E:B7:32:C6:B3:48:97:D1:DE:FB:A3:D6:AE:D6:28:15:8F:4C:F4:5D
             X509v3 Authority Key Identifier: 
-                keyid:97:77:AD:95:B6:BE:0C:EC:C8:15:ED:FE:33:FC:AD:AA:74:43:75:0D
+                keyid:2E:B7:32:C6:B3:48:97:D1:DE:FB:A3:D6:AE:D6:28:15:8F:4C:F4:5D
 
             X509v3 Basic Constraints: critical
                 CA:TRUE
@@ -195,23 +195,23 @@ Certificate:
             X509v3 Issuer Alternative Name: 
                 email:eosremote@dave.thwaites.org.uk
     Signature Algorithm: sha256WithRSAEncryption
-         c7:4a:80:2c:40:87:15:05:4b:86:0b:12:d9:18:44:20:75:98:
-         d6:f0:4f:85:db:50:f5:b0:07:c7:9c:6e:81:a1:55:81:8f:7b:
-         6d:1e:97:6f:bf:43:53:c1:41:6f:6f:d0:d5:a8:e0:25:d5:e4:
-         ae:a6:48:ec:be:21:ce:8d:53:7b:19:86:09:44:6c:1a:62:76:
-         e8:f9:6a:1a:78:d4:d8:c8:32:45:0d:cc:e2:76:d5:61:fb:31:
-         1c:c4:09:f9:56:11:18:88:9d:4b:a9:6f:fe:22:8a:30:44:51:
-         de:05:85:d8:4f:c5:85:f6:aa:45:2f:9a:ec:90:8e:73:91:66:
-         1c:c9:0a:7a:7a:97:97:4a:53:a7:89:49:ea:52:95:d0:b4:76:
-         f4:53:56:84:c0:e9:f2:43:bf:bb:1a:72:97:1e:c0:b4:63:d1:
-         a6:c0:a7:27:3b:65:f7:36:eb:0b:e3:62:5d:9e:31:70:e3:b9:
-         1b:84:c3:bb:b6:24:eb:2a:0e:78:d3:62:24:66:43:ee:ca:ae:
-         e2:6b:c2:50:15:53:df:d2:8a:42:b5:b7:d2:29:67:7f:e7:6b:
-         7b:18:db:8d:55:8f:7a:8b:e1:85:b0:cf:1c:34:1c:1a:ef:a5:
-         0b:26:58:c9:8a:db:44:a1:b8:10:28:4a:76:42:f4:97:9e:6c:
-         e1:c9:d1:62
+         9d:4d:60:8f:54:94:cf:87:39:fe:0d:f0:d5:3f:ef:82:2b:b7:
+         af:7f:37:02:b4:aa:93:9f:34:0d:5e:7a:0b:f4:3e:87:39:0d:
+         a0:ac:a7:94:c3:cd:fe:d9:57:2e:3f:4d:0f:0e:ab:98:08:95:
+         6f:7b:ad:67:e9:74:19:90:2d:0b:7b:c5:b1:49:ce:30:18:48:
+         76:ca:04:42:47:e8:c9:d4:79:82:16:9f:22:2f:0c:26:1c:ae:
+         f7:34:0a:8e:cd:29:32:33:95:3f:c8:39:49:33:a5:cd:17:7e:
+         2e:51:ce:e9:02:b9:a1:08:bb:fb:61:c2:fc:83:ed:1a:21:17:
+         49:e4:a8:84:8f:79:d8:51:18:28:0b:b7:b6:a2:43:c1:2c:44:
+         ac:28:20:72:29:7e:d3:9d:bf:99:d6:4d:13:20:18:f8:d7:f1:
+         88:0f:b6:67:85:dc:c4:25:84:c7:e7:f7:10:7c:96:99:a3:b2:
+         89:47:a4:a9:62:e1:3e:2f:80:40:2d:36:e4:65:e8:68:69:a9:
+         34:db:7b:7e:1e:a9:92:6e:9c:c4:81:09:25:d3:98:07:48:fc:
+         53:16:e4:3b:fc:2d:9e:2f:66:dc:cf:56:2d:38:f5:09:54:0d:
+         3a:7f:ab:74:fd:8f:3d:4f:fd:21:28:d9:92:8a:92:bf:2f:ac:
+         e2:2d:03:72
 
-pi@eosremote:~/EosRemote/ssl $ cat openssl-ca.cnf 
+pi@eosremote:~/EosRemote/ssl $ cat openssl-ca.cnf
 #
 # OpenSSL example configuration file.
 # This is mostly being used for generation of certificate requests.
@@ -223,6 +223,7 @@ pi@eosremote:~/EosRemote/ssl $ cat openssl-ca.cnf
 # defined.
 HOME			= .
 RANDFILE		= $ENV::HOME/.rnd
+CA_dir			= $ENV::HOME/EosRemote/ssl/CA
 
 # To use this configuration file with the "-extfile" option of the
 # "openssl x509" utility, name here the section containing the
@@ -240,21 +241,21 @@ default_ca	= CA_default		# The default ca section
 ####################################################################
 [ CA_default ]
 
-dir		= ./CA			# Where everything is kept
-certs		= $dir/certs		# Where the issued certs are kept
-crl_dir		= $dir/crl		# Where the issued crl are kept
-database	= $dir/index.txt	# database index file.
+# dir		= ./CA			# Where everything is kept
+certs		= $CA_dir/certs		# Where the issued certs are kept
+crl_dir		= $CA_dir/crl		# Where the issued crl are kept
+database	= $CA_dir/index.txt	# database index file.
 unique_subject	= no			# Set to 'no' to allow creation of
 					# several certs with same subject.
-new_certs_dir	= $dir/newcerts		# default place for new certs.
+new_certs_dir	= $CA_dir/newcerts	# default place for new certs.
 
-certificate	= $dir/cacert.pem 	# The CA certificate
-serial		= $dir/serial 		# The current serial number
-crlnumber	= $dir/crlnumber	# the current crl number
+certificate	= $CA_dir/cacert.pem 	# The CA certificate
+serial		= $CA_dir/serial 	# The current serial number
+crlnumber	= $CA_dir/crlnumber	# the current crl number
 					# must be commented out to leave a V1 CRL
-crl		= $dir/crl.pem 		# The current CRL
-private_key	= $dir/private/cakey.pem# The private key
-RANDFILE	= $dir/private/.rand	# private random number file
+crl		= $CA_dir/crl.pem 	# The current CRL
+private_key	= $CA_dir/private/cakey.pem# The private key
+RANDFILE	= $CA_dir/private/.rand	# private random number file
 
 x509_extensions	= usr_cert		# The extensions to add to the cert
 
@@ -364,10 +365,10 @@ authorityKeyIdentifier=keyid,issuer
 # Settings for when we generate our self-signed CA certificate
 
 [req]
-dir			= ./CA
+# dir			= ./CA
 default_bits		= 2048
-default_keyfile 	= $dir/private/cakey.pem
-RANDFILE		= $dir/private/.rand
+default_keyfile 	= $CA_dir/private/cakey.pem
+RANDFILE		= $CA_dir/private/.rand
 default_md		= sha256
 string_mask		= utf8only
 # req_extensions	= req_ext
