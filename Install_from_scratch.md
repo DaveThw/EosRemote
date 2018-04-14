@@ -412,4 +412,116 @@ subjectAltName=email:copy
 # Copy issuer details
 issuerAltName=issuer:copy
 ```
+- Issue a Certificate Signing Request, and then pass it through our new CA
+``` shell
+pi@eosremote:~/EosRemote/ssl $ openssl req -new -key server.key -out server.csr -config openssl-csr.cnf
+
+pi@eosremote:~/EosRemote/ssl $ touch CA/index.txt
+pi@eosremote:~/EosRemote/ssl $ touch CA/index.txt.attr
+
+pi@eosremote:~/EosRemote/ssl $ openssl ca -in server.csr -out server.crt -create_serial -config openssl-ca.cnf 
+Using configuration from openssl-ca.cnf
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number:
+            ae:40:e7:c7:d8:7f:ab:c8
+        Validity
+            Not Before: Apr 14 18:54:52 2018 GMT
+            Not After : Apr 14 18:54:52 2019 GMT
+        Subject:
+            countryName               = UK
+            organizationName          = EosRemote
+            organizationalUnitName    = EosRemote LAN Server
+            commonName                = eosremote
+            emailAddress              = eosremote@dave.thwaites.org.uk
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                28:15:73:4F:AF:5B:74:5F:03:68:50:E1:42:DF:44:0B:B6:1D:2E:40
+            X509v3 Authority Key Identifier: 
+                keyid:04:74:7E:38:16:B8:B9:4E:5D:EF:68:F7:72:A6:E6:38:1D:5B:54:74
+
+            X509v3 Key Usage: 
+                Digital Signature, Non Repudiation, Key Encipherment, Data Encipherment
+            X509v3 Subject Alternative Name: 
+                DNS:eosremote, DNS:eosremote.local, IP Address:10.101.1.2, IP Address:192.168.1.2, IP Address:192.168.1.80, IP Address:10.0.0.68
+Certificate is to be certified until Apr 14 18:54:52 2019 GMT (365 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+
+
+pi@eosremote:~/EosRemote/ssl $ openssl x509 -in server.crt -noout -text
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            ae:40:e7:c7:d8:7f:ab:c8
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = UK, ST = Suffolk, L = Bury St Edmunds, O = EosRemote, OU = https://github.com/DaveThw/EosRemote/, emailAddress = eosremote@dave.thwaites.org.uk, CN = EosRemote Root CA
+        Validity
+            Not Before: Apr 14 18:54:52 2018 GMT
+            Not After : Apr 14 18:54:52 2019 GMT
+        Subject: C = UK, O = EosRemote, OU = EosRemote LAN Server, CN = eosremote, emailAddress = eosremote@dave.thwaites.org.uk
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:df:f4:81:87:81:b0:1b:22:0b:b0:fa:fb:d9:9f:
+                    fc:2e:36:35:f1:4d:ae:ea:44:f2:ad:c1:37:a7:ea:
+                    d2:f9:a3:73:02:f1:75:0d:75:f4:ce:b3:f7:af:78:
+                    97:04:7b:79:99:8a:a5:fa:1d:0c:dc:ac:36:53:f7:
+                    ed:4a:46:6e:7b:d6:4f:a2:46:b2:49:8a:ce:df:f8:
+                    02:f2:3a:7c:e3:8f:14:71:76:ee:1a:71:dc:7c:52:
+                    a3:7a:44:30:92:af:b8:8c:7d:a4:19:06:fa:36:29:
+                    dc:59:82:6a:2b:e1:6d:e9:d8:2e:14:5b:76:30:b4:
+                    f9:df:e6:2d:38:87:c1:8e:c7:11:04:05:28:aa:4a:
+                    60:f8:82:8a:76:6d:e7:e4:6d:04:92:9e:28:8a:09:
+                    50:07:fa:53:f4:4c:64:f8:58:26:c9:66:b5:33:bc:
+                    d1:5a:d5:6e:39:53:5f:60:00:17:60:0c:4c:68:6e:
+                    8b:b3:04:88:fc:4f:4c:31:14:50:1d:60:68:a6:ef:
+                    5a:4f:0e:88:07:45:86:c8:63:44:53:f8:36:d2:ee:
+                    f7:24:a1:14:da:8e:0f:0e:f6:f7:53:4a:af:80:3f:
+                    db:40:f7:41:48:af:41:86:1f:f4:d3:d4:ec:a5:a3:
+                    a5:2a:94:e4:2c:6d:40:3c:fc:48:8d:40:81:95:5e:
+                    5a:0f
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                28:15:73:4F:AF:5B:74:5F:03:68:50:E1:42:DF:44:0B:B6:1D:2E:40
+            X509v3 Authority Key Identifier: 
+                keyid:04:74:7E:38:16:B8:B9:4E:5D:EF:68:F7:72:A6:E6:38:1D:5B:54:74
+
+            X509v3 Key Usage: 
+                Digital Signature, Non Repudiation, Key Encipherment, Data Encipherment
+            X509v3 Subject Alternative Name: 
+                DNS:eosremote, DNS:eosremote.local, IP Address:10.101.1.2, IP Address:192.168.1.2, IP Address:192.168.1.80, IP Address:10.0.0.68
+    Signature Algorithm: sha256WithRSAEncryption
+         95:9e:60:9a:3e:88:77:b4:da:90:a3:8e:d2:e3:aa:5a:c8:49:
+         57:1e:1b:0e:8c:57:c4:df:ab:a3:da:8c:60:31:41:ef:fc:da:
+         e2:38:c3:05:97:4c:97:ba:e8:fe:9b:86:4b:be:32:8c:a4:af:
+         13:4b:dc:b4:73:31:0c:95:60:3f:4c:f7:dc:9b:6f:76:88:d7:
+         c2:c5:13:21:fb:8d:77:e4:e1:cb:9e:c9:db:50:bb:76:7c:dd:
+         51:eb:9d:4d:9d:88:34:45:74:3e:ab:b0:e1:86:35:2a:51:af:
+         08:cb:9b:12:72:78:71:de:ed:3a:35:a1:e5:38:c8:be:b3:68:
+         bb:24:b4:1e:74:06:5d:95:0e:ca:93:65:ce:b0:c8:93:83:b6:
+         f5:37:b0:a4:0c:04:ca:a2:df:7e:4d:d5:f5:38:6f:f7:26:eb:
+         ff:b7:be:20:04:c0:a3:b1:8a:85:8d:b6:e9:bf:f2:ed:7b:d7:
+         e1:55:14:a7:c4:56:1b:29:73:fd:29:ff:35:7e:8f:35:d2:5c:
+         02:e4:9b:a4:10:cb:90:08:a5:cb:ea:10:28:f4:ed:24:ce:a8:
+         c0:70:fb:3f:c3:35:40:4e:51:4e:03:ab:4e:f9:e4:d0:00:fb:
+         d4:4f:d8:80:1d:9d:f5:ad:82:f9:dc:c8:a5:e1:9b:46:6f:83:
+         e6:e4:80:1c
+```
 ... to be continued!
