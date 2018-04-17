@@ -1,0 +1,70 @@
+#
+# OpenSSL configuration file.
+# This is mostly being used for generation of certificate requests.
+#
+# Based various example configuration files, modified and tweaked
+#  by DRT for EosRemote, to use as the configuration file for generating
+#  the HTTPS certificate request
+#
+
+# This definition stops the following lines choking if HOME isn't
+# defined.
+HOME			= .
+# RANDFILE		= $ENV::HOME/.rnd
+ssl_dir			= $ENV::HOME/EosRemote/ssl
+CA_dir			= $ENV::HOME/EosRemote/ssl/CA
+
+# X.59v3 extensions to use with "openssl x509 -extfile"
+# (used when creating our certificate from the certificate request)
+extensions		= req_ext
+
+[req]
+default_bits		= 2048
+default_keyfile 	= $ssl_dir/server.key
+# RANDFILE		= $CA_dir/private/.rand
+default_md		= sha256
+string_mask		= utf8only
+req_extensions		= req_ext
+prompt			= no
+#attributes		= req_attributes
+distinguished_name	= dn
+
+[ dn ]
+C			= UK
+#ST			= Suffolk
+#L			= Bury St Edmunds
+O			= EosRemote
+OU			= EosRemote LAN Server
+emailAddress		= eosremote@dave.thwaites.org.uk
+CN			= eosremote
+
+[ req_ext ]
+# keyUsage - see http://www.faqs.org/rfcs/rfc3280.html section 4.2.1.3
+#   for definitions of the different usage types
+# These are all the usage types that may be present in an end entity
+#   certificate which conveys an RSA public key
+# (see http://www.faqs.org/rfcs/rfc3279.html section 2.3.1)
+#keyUsage		= digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+# Found this suggested here:
+# https://access.redhat.com/solutions/28965
+# (not checked it out much further yet...)
+#extendedKeyUsage	= serverAuth, clientAuth, codeSigning, emailProtection
+
+# Minimal - this seems to be the fewest required options:
+#keyUsage		= critical, keyEncipherment
+#extendedKeyUsage	= serverAuth
+
+# Basic - various online sources seem to suggest that digitalSignature
+#   might be useful:
+keyUsage		= critical, digitalSignature, keyEncipherment
+extendedKeyUsage	= serverAuth
+
+subjectAltName		= @alt_names
+
+[ alt_names ]
+DNS.1			= eosremote
+DNS.2			= eosremote.local
+IP.1			= 10.101.1.2
+IP.2			= 192.168.1.2
+IP.3			= 192.168.1.80
+IP.4			= 10.0.0.68
