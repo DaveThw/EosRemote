@@ -20,7 +20,7 @@ extensions		= req_ext
 
 [req]
 default_bits		= 2048
-default_keyfile 	= $ssl_dir/server.key
+default_keyfile 	= $ssl_dir/server-key.pem
 # RANDFILE		= $CA_dir/private/.rand
 default_md		= sha256
 string_mask		= utf8only

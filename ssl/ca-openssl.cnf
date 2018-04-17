@@ -44,7 +44,7 @@ crlnumber	= $CA_dir/crlnumber	# the current crl number
 					# must be commented out to leave a V1 CRL
 # This option also doesn't appear in the documentation...
 # crl		= $CA_dir/crl.pem 	# The current CRL
-private_key	= $CA_dir/private/cakey.pem # The private key
+private_key	= $CA_dir/private/ca-key.pem # The private key
 RANDFILE	= $CA_dir/private/.rand	# private random number file
 
 x509_extensions		= usr_cert	# The extensions to add to the cert
