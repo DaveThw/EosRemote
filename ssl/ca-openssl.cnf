@@ -116,7 +116,7 @@ authorityKeyIdentifier	= keyid,issuer
 # subjectAltName	= email:copy
 # An alternative to produce certificates that aren't
 # deprecated according to PKIX.
-subjectAltName		= email:move
+# subjectAltName	= email:move
 
 # Copy subjectAltName details from issuer certificate
 # issuerAltName		= issuer:copy
