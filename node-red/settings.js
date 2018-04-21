@@ -117,8 +117,10 @@ module.exports = {
     // this setting.
     //
     https: {
-        key: fs.readFileSync('/home/pi/.node-red/public/privatekey.pem'),
-        cert: fs.readFileSync('/home/pi/.node-red/public/certificate.pem')
+//        key: fs.readFileSync('/home/pi/.node-red/public/privatekey.pem'),
+//        cert: fs.readFileSync('/home/pi/.node-red/public/certificate.pem')
+        key: fs.readFileSync('/home/pi/EosRemote/ssl/server-key.pem'),
+        cert: fs.readFileSync('/home/pi/EosRemote/ssl/server-cert.pem')
     },
 
     // The following property can be used to disable the editor. The admin API

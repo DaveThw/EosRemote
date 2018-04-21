@@ -20,7 +20,7 @@ extensions		= req_ext
 
 [req]
 default_bits		= 2048
-default_keyfile 	= $ssl_dir/server.key
+default_keyfile 	= $ssl_dir/server-key.pem
 # RANDFILE		= $CA_dir/private/.rand
 default_md		= sha256
 string_mask		= utf8only
@@ -35,7 +35,7 @@ C			= UK
 #L			= Bury St Edmunds
 O			= EosRemote
 OU			= EosRemote LAN Server
-emailAddress		= eosremote@dave.thwaites.org.uk
+#emailAddress		= eosremote@dave.thwaites.org.uk
 CN			= eosremote
 
 [ req_ext ]
@@ -62,6 +62,7 @@ extendedKeyUsage	= serverAuth
 subjectAltName		= @alt_names
 
 [ alt_names ]
+email			= eosremote@dave.thwaites.org.uk
 DNS.1			= eosremote
 DNS.2			= eosremote.local
 IP.1			= 10.101.1.2
