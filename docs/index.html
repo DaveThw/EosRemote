@@ -80,6 +80,7 @@
     panels[i++]    = make_faders_panel();
     panels[i++]    = make_macros_panel();
     // panels[i++]    = make_smoke_panel();
+    panels[i++]    = make_power_panel();
     panels[i++]    = make_stats_panel();
     panels['menu'] = make_menu_panel();
 
@@ -206,18 +207,24 @@
       //   JSON.stringify({ type:'socket', address:'/eos/reset', parameters:[] })
       // );
       websocketStatus.setValue(timeLabel.value+' - Connected');
+      websocketStatus2.setValue('Connected');
+      eosRemote_server.setValue('Connected');
       console.log( "Websocket: Connected at "+timeLabel.value );
       statusWebsocket.setValue(1);
     };
 
     Interface.Socket.onclose = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Closed');
+      websocketStatus2.setValue('Closed');
+      eosRemote_server.setValue('Disconnected');
       console.log( "Websocket: Closed at "+timeLabel.value );
       statusWebsocket.setValue(0);
     };
 
     Interface.Socket.onerror = function (event) {
       websocketStatus.setValue(timeLabel.value+' - Error');
+      websocketStatus2.setValue('Error');
+      eosRemote_server.setValue('Connection Error');
       console.log( "Websocket: Error at "+timeLabel.value );
     };
 
@@ -1033,6 +1040,8 @@
     Interface.OSC.callbacks['/osc/ping/ion'] = function(args) {
       // console.log( args )
       tcpPingStatus.setValue(timeLabel.value + ' - ' + (args[0]===false ? 'Failed' : args[0]+'mS'));
+      tcpPingStatus2.setValue(args[0]===false ? 'Failed' : args[0]+'mS');
+      lxdesk_status.setValue(args[0]===false ? 'Off (or disconnected)' : 'On');
     }
     y++;
 
@@ -1053,6 +1062,7 @@
         var currentTime = new Date();
 	var msTime = currentTime.getTime();
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        oscPingStatus2.setValue('id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/osc/ping', 'S', id+":"+msTime );
         // statusPing.setValue(0)
       },
@@ -1070,6 +1080,7 @@
       // oscPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
       if (ping[0] == oscPingStatus.id) {
         oscPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        oscPingStatus2.setValue("" + (currentTime.getTime() - ping[1]) + "mS");
         // statusPing.setValue(1)
       }
     }
@@ -1092,6 +1103,7 @@
         var currentTime = new Date();
 	var msTime = currentTime.getTime();
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + id + ' - ' + 'sent...');
+        eosPingStatus2.setValue('id: ' + id + ' - ' + 'sent...');
         Interface.OSC.send( '/eos/ping', 'S', id+":"+msTime );
         // Interface.Socket.send(
         //   JSON.stringify({ type:'socket', address:'/eos/ping', parameters:[ id+":"+msTime ] })
@@ -1114,6 +1126,8 @@
       // eosPingStatus.setValue(timeLabel.value + ' - ' + args[0]);
       if (ping[0] == eosPingStatus.id) {
         eosPingStatus.setValue(timeLabel.value + ' - ' + 'id: ' + ping[0] + ' - ' + (currentTime.getTime() - ping[1]) + "mS");
+        eosPingStatus2.setValue("" + (currentTime.getTime() - ping[1]) + "mS");
+        lxdesk_status.setValue('On');
         statusPing.setValue(1)
       }
     }
@@ -2442,6 +2456,189 @@
         }
       }
     }
+
+  return panel; }
+
+
+
+
+/***************************************************************************************\
+*                                                                                       *
+*                                    POWER PANEL                                        *
+*                                                                                       *
+\***************************************************************************************/
+
+  function make_power_panel () {
+    
+    panel = new Interface.Panel({
+      useRelativeSizesAndPositions: true,
+      container:document.querySelector("#osc_panel"),
+    });
+    panel.background = '#222';
+    panel.canvas.style.width = '100%';
+    panel.canvas.style.height = '100%';
+    panel.font = 'normal '+fontSize+'px sans-serif';
+    panel.label = 'Power';
+    panel.hash = 'power';
+
+    var x_base, y_base, button_width, button_height, margin, x, y;
+
+    x_base=.00; y_base=.00; button_width=.50; button_height=.05; margin = 0.005;
+    x=0; y=0;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "Websocket: ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( websocketStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "TCP Ping (Server to Desk): ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( tcpPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping (Client to Server): ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( oscPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+    }) );
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "OSC Ping (Client to Desk): ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( eosPingStatus2 = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+      timer: null,
+    }) );
+    y++;
+
+    y++;
+
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "EosRemote Server: ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( eosRemote_server = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
+      value: "LX Desk: ",
+      size: fontSize,
+      hAlign: 'right',
+    }) );
+    panel.add( lxdesk_status = new Interface.Label({
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      value: "??",
+      size: fontSize,
+      stroke: '#fff',
+      hAlign: 'left',
+    }) );
+    y++;
+    panel.add( new Interface.Label({
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, 1.0-2*margin, button_height-2*margin],
+      value: "<Command Line Text>",
+      size: fontSize,
+      key: '/eos/out/cmd',
+      hAlign: 'left',
+      vAlign: 'middle',
+      stroke: '#fff',
+      stroke_normal: '#fff',
+      stroke_error: '#f00',
+    }) );
+    y++;
+
+
+    x_base=.00; y_base=0.50; button_width=.20; button_height=.10; margin = 0.010;
+    x=0; y=0;
+
+    x++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, (button_width*3)-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/osc/wol',
+      mode: 'momentary',
+      label: 'Power On Desk',
+      background: '#090', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#0f0',       // fill colour (when pressed)
+      relativeFontSize: 1.5,
+      font: 'normal '+(1.5*fontSize)+'px sans-serif',
+    }) ); x+=3;
+
+    x=0; y++;
+    x=0; y++;
+
+    x++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, (button_width*3)-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/power_off',
+      mode: 'momentary',
+      label: 'Power Off Desk',
+      background: '#900', // fill colour (when not pressed)
+      stroke: '#ccc',     // text colour, and border colour
+      fill: '#f00',       // fill colour (when pressed)
+      relativeFontSize: 1.5,
+      font: 'normal '+(1.5*fontSize)+'px sans-serif',
+    }) ); x+=3;
+
+    x=0; y++;
+
+    x++;
+    panel.add( new Interface.Button({
+      bounds: [x_base+x*button_width+margin, y_base+y*button_height+margin, (button_width*3)-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/enter',
+      mode: 'momentary',
+      label: 'Enter (confirm!)',
+//      background: '#900', // fill colour (when not pressed)
+//      stroke: '#ccc',     // text colour, and border colour
+//      fill: '#f00',       // fill colour (when pressed)
+      relativeFontSize: 1.5,
+      font: 'normal '+(1.5*fontSize)+'px sans-serif',
+    }) ); x+=3;
+
 
   return panel; }
 
