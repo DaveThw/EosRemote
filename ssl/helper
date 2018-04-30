@@ -10,10 +10,15 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 
 SSL_DIR=$SCRIPTPATH
 
+CONF_FILE=-openssl.cnf
+CERT_FILE=-cert.pem
+KEY_FILE =-key.pem
+CSR_FILE =-csr.pem
+
 CA_DIR =$SSL_DIR/CA
-CA_CONF=$SSL_DIR/ca-openssl.cnf
-CA_CERT=$SSL_DIR/ca-cert.pem
-CA_KEY =$CA_DIR/private/ca-key.pem
+CA_CONF=$SSL_DIR/ca$CONF_FILE
+CA_CERT=$SSL_DIR/ca$CERT_FILE
+CA_KEY =$CA_DIR/private/ca$KEY_FILE
 
 
 
@@ -42,7 +47,7 @@ newkey_help() {
 }
 
 newkey_client() {
-  newkey $SSL_DIR/$1-key.pem
+  newkey $SSL_DIR/$1$KEY_FILE
 }
 
 newkey_ca() {
@@ -65,7 +70,7 @@ update_help() {
 }
 
 update_client() {
-  update $SSL_DIR/$1-key.pem $SSL_DIR/$1-csr.pem $SSL_DIR/$1-openssl.cnf $SSL_DIR/$1-cert.pem
+  update $SSL_DIR/$1$KEY_FILE $SSL_DIR/$1$CSR_FILE $SSL_DIR/$1$CONF_FILE $SSL_DIR/$1$CERT_FILE
 }
 
 update_ca() {
@@ -94,7 +99,7 @@ show_help() {
 }
 
 show_client() {
-  show $SSL_DIR/$1-cert.pem
+  show $SSL_DIR/$1$CERT_FILE
 }
 
 show_ca() {
@@ -116,7 +121,7 @@ enddate_help() {
 }
 
 enddate_client() {
-  enddate $SSL_DIR/$1-cert.pem
+  enddate $SSL_DIR/$1$CERT_FILE
 }
 
 enddate_ca() {
