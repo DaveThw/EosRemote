@@ -2,6 +2,15 @@
 #
 # Usage: ./helper ....
 
+# These lines taken from https://stackoverflow.com/a/1638397
+# Absolute path to this script, e.g. /home/user/pi/EosRemote/ssl/helper
+SCRIPT=$(readlink -f "$0")
+# Absolute path this script is in, thus /home/user/pi/EosRemote/ssl
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+SSL_DIR=${SCRIPTPATH}
+CA_DIR=${SSL_DIR}/CA
+
 usage() {
   echo "Usage: $0 server|CA|help [option]"
 }
@@ -10,6 +19,9 @@ help() {
   usage
   echo
   echo "Help text"
+  echo
+  echo "SCRIPT =     '${SCRIPT}'"
+  echo "SCRIPTPATH = '${SCRIPTPATH}'"
 }
 
 server_usage() {
@@ -26,26 +38,26 @@ server_help() {
 }
 
 server_newkey() {
-  openssl genrsa -out server-key.pem 2048
+  openssl genrsa -out $SSL_DIR/server-key.pem 2048
 }
 
 server_update() {
   echo "Create a new Certificate Request with existing Key..."
-  openssl req -new -key server-key.pem -out server-csr.pem -config server-openssl.cnf
+  openssl req -new -key $SSL_DIR/server-key.pem -out $SSL_DIR/server-csr.pem -config $SSL_DIR/server-openssl.cnf
   echo "Use our CA to sign the Certificate Request..."
   # -batch  prevents openssl asking if we want to sign the certificate, and commit
   # -notext prevents the plain text details being included in the pem file
   # -create_serial creates the serial number file if it doesn't exist
-  openssl ca -in server-csr.pem -out server-cert.pem -batch -create_serial -config ca-openssl.cnf
+  openssl ca -in $SSL_DIR/server-csr.pem -out $SSL_DIR/server-cert.pem -batch -create_serial -config $SSL_DIR/ca-openssl.cnf
   echo "...done!"
 }
 
 server_show() {
-  openssl x509 -in server-cert.pem -noout -text
+  openssl x509 -in $SSL_DIR/server-cert.pem -noout -text
 }
 
 server_enddate() {
-  local when=$(openssl x509 -in server-cert.pem -noout -enddate)
+  local when=$(openssl x509 -in $SSL_DIR/server-cert.pem -noout -enddate)
   echo "Expiry date/time: ${when:9}"
 }
 
