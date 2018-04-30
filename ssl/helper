@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./CA.sh ....
+# Usage: ./helper ....
 
 usage() {
   echo "Usage: $0 server|CA|help [option]"
