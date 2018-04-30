@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./helper ....
+# Usage: ./helper newkey|update|show|enddate|help client-name
 
 # These lines taken from https://stackoverflow.com/a/1638397
 # Absolute path to this script, e.g. /home/user/pi/EosRemote/ssl/helper
@@ -8,97 +8,219 @@ SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/pi/EosRemote/ssl
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-SSL_DIR=${SCRIPTPATH}
-CA_DIR=${SSL_DIR}/CA
+SSL_DIR=$SCRIPTPATH
+
+CA_DIR =$SSL_DIR/CA
+CA_CONF=$SSL_DIR/ca-openssl.cnf
+CA_CERT=$SSL_DIR/ca-cert.pem
+CA_KEY =$CA_DIR/private/ca-key.pem
+
+
 
 usage() {
-  echo "Usage: $0 server|CA|help [option]"
+  echo "Usage: $0 newkey|update|show|enddate|help [client-name]"
 }
 
 help() {
   usage
   echo
-  echo "Help text"
-  echo
-  echo "SCRIPT =     '${SCRIPT}'"
-  echo "SCRIPTPATH = '${SCRIPTPATH}'"
+  echo "newkey client-name  Creates a new RSA key for the client"
+  echo "update client-name  Creates a new certificate for the client, from the key"
+  echo "show client-name    Show the details of the client certificate"
+  echo "enddate client-name Show the expiry date/time of the client certificate"
+  echo "help                Show this help text"
 }
 
-server_usage() {
-  echo "Usage: $0 server newkey|update|show|enddate|help"
+
+
+newkey_usage() {
+  usage
 }
 
-server_help() {
-  server_usage
-  echo
-  echo "server newkey   Creates a new RSA key for the server"
-  echo "server update   Creates a new certificate for the server, from the key"
-  echo "server show     Show the details of the server certificate"
-  echo "server enddate  Show the expiry date/time of the server certificate"
+newkey_help() {
+  help
 }
 
-server_newkey() {
-  openssl genrsa -out $SSL_DIR/server-key.pem 2048
+newkey_client() {
+  newkey $SSL_DIR/$1-key.pem
 }
 
-server_update() {
+newkey_ca() {
+  echo "newkey CA - not yet functional..."
+  # newkey $CA_KEY
+}
+
+newkey() {
+  openssl genrsa -out $1 2048
+}
+
+
+
+update_usage() {
+  usage
+}
+
+update_help() {
+  help
+}
+
+update_client() {
+  update $SSL_DIR/$1-key.pem $SSL_DIR/$1-csr.pem $SSL_DIR/$1-openssl.cnf $SSL_DIR/$1-cert.pem
+}
+
+update_ca() {
+  echo "update CA - not yet functional..."
+}
+
+update() {
   echo "Create a new Certificate Request with existing Key..."
-  openssl req -new -key $SSL_DIR/server-key.pem -out $SSL_DIR/server-csr.pem -config $SSL_DIR/server-openssl.cnf
+  openssl req -new -key $1 -out $2 -config $3
   echo "Use our CA to sign the Certificate Request..."
   # -batch  prevents openssl asking if we want to sign the certificate, and commit
   # -notext prevents the plain text details being included in the pem file
   # -create_serial creates the serial number file if it doesn't exist
-  openssl ca -in $SSL_DIR/server-csr.pem -out $SSL_DIR/server-cert.pem -batch -create_serial -config $SSL_DIR/ca-openssl.cnf
+  openssl ca -in $2 -out $4 -batch -create_serial -config $CA_CONF
   echo "...done!"
 }
 
-server_show() {
-  openssl x509 -in $SSL_DIR/server-cert.pem -noout -text
+
+
+show_usage() {
+  usage
 }
 
-server_enddate() {
-  local when=$(openssl x509 -in $SSL_DIR/server-cert.pem -noout -enddate)
+show_help() {
+  help
+}
+
+show_client() {
+  show $SSL_DIR/$1-cert.pem
+}
+
+show_ca() {
+  show $CA_CERT
+}
+
+show() {
+  openssl x509 -in $1 -noout -text
+}
+
+
+
+enddate_usage() {
+  usage
+}
+
+enddate_help() {
+  help
+}
+
+enddate_client() {
+  enddate $SSL_DIR/$1-cert.pem
+}
+
+enddate_ca() {
+  enddate $CA_CERT
+}
+
+enddate() {
+  local when=$(openssl x509 -in $1 -noout -enddate)
   echo "Expiry date/time: ${when:9}"
 }
 
-server() {
-  # echo "Server"
-  case $1 in
-    update)
-      server_update
-      ;;
-    newKey|newkey|new_key)
-      server_newkey
-      ;;
-    show)
-      server_show
-      ;;
-    enddate)
-      server_enddate
-      ;;
-    help)
-      server_help
-      ;;
-    *)
-      server_usage
-      exit 1
-      ;;
-  esac
-}
 
-ca() {
-  echo "CA"
-}
 
 case $1 in
-  server)
-    server $2
+  update)
+    case $2 in
+      CA|ca|Ca|cA)
+        update_ca
+        ;;
+      help)
+        update_help
+        ;;
+      "")
+        update_usage
+        exit 1
+        ;;
+      *)
+        update_client $2
+        ;;
+    esac
     ;;
-  CA|ca|Ca|cA)
-    ca $2
+  newKey|newkey|new_key)
+    case $2 in
+      CA|ca|Ca|cA)
+        newkey_ca
+        ;;
+      help)
+        newkey_help
+        ;;
+      "")
+        newkey_usage
+        exit 1
+        ;;
+      *)
+        newkey_client $2
+        ;;
+    esac
+    ;;
+  show)
+    case $2 in
+      CA|ca|Ca|cA)
+        show_ca
+        ;;
+      help)
+        show_help
+        ;;
+      "")
+        show_usage
+        exit 1
+        ;;
+      *)
+        show_client $2
+        ;;
+    esac
+    ;;
+  enddate)
+    case $2 in
+      CA|ca|Ca|cA)
+        enddate_ca
+        ;;
+      help)
+        enddate_help
+        ;;
+      "")
+        enddate_usage
+        exit 1
+        ;;
+      *)
+        enddate_client $2
+        ;;
+    esac
     ;;
   help)
-    help
+    case $2 in
+      update)
+        update_help
+        ;;
+      newKey|newkey|new_key)
+        newkey_help
+        ;;
+      show)
+        show_help
+        ;;
+      enddate)
+        enddate_help
+        ;;
+      "")
+        help
+        ;;
+      *)
+        usage
+        exit 1
+        ;;
+    esac
     ;;
   *)
     usage
