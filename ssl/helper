@@ -12,13 +12,13 @@ SSL_DIR=$SCRIPTPATH
 
 CONF_FILE=-openssl.cnf
 CERT_FILE=-cert.pem
-KEY_FILE =-key.pem
-CSR_FILE =-csr.pem
+KEY_FILE=-key.pem
+CSR_FILE=-csr.pem
 
-CA_DIR =$SSL_DIR/CA
+CA_DIR=$SSL_DIR/CA
 CA_CONF=$SSL_DIR/ca$CONF_FILE
 CA_CERT=$SSL_DIR/ca$CERT_FILE
-CA_KEY =$CA_DIR/private/ca$KEY_FILE
+CA_KEY=$CA_DIR/private/ca$KEY_FILE
 
 
 
