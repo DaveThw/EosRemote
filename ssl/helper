@@ -56,7 +56,19 @@ newkey_ca() {
 }
 
 newkey() {
-  openssl genrsa -out $1 2048
+  local var YN=Y
+  if [ -e $1 ]; then
+    # Based on one of the answers here: https://stackoverflow.com/a/27875395
+    read -p "Are you sure you want to replace the existing key (Y/n)? " YN
+  fi
+  case ${YN:0:1} in
+    y|Y )
+      openssl genrsa -out $1 2048
+      ;;
+    * )
+      echo "Canceled"
+      ;;
+  esac
 }
 
 
