@@ -57,6 +57,7 @@ newkey_ca() {
 
 newkey() {
   local var YN=Y
+  echo "Key file: $1"
   if [ -e $1 ]; then
     # Based on one of the answers here: https://stackoverflow.com/a/27875395
     read -p "Are you sure you want to replace the existing key (Y/n)? " YN
