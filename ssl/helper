@@ -8,7 +8,7 @@ SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/pi/EosRemote/ssl
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-SSL_DIR=$SCRIPTPATH
+SSL_DIR="$SCRIPTPATH"
 
 CONF_FILE=-openssl.cnf
 CERT_FILE=-cert.pem
@@ -16,10 +16,10 @@ KEY_FILE=-key.pem
 CSR_FILE=-csr.pem
 BACKUP_EXT=.bak
 
-CA_DIR=$SSL_DIR/CA
-CA_CONF=$SSL_DIR/ca$CONF_FILE
-CA_CERT=$SSL_DIR/ca$CERT_FILE
-CA_KEY=$CA_DIR/private/ca$KEY_FILE
+CA_DIR="$SSL_DIR/CA"
+CA_CONF="$SSL_DIR/ca$CONF_FILE"
+CA_CERT="$SSL_DIR/ca$CERT_FILE"
+CA_KEY="$CA_DIR/private/ca$KEY_FILE"
 
 
 
@@ -48,12 +48,12 @@ newkey_help() {
 }
 
 newkey_client() {
-  newkey $SSL_DIR/$1$KEY_FILE
+  newkey "$SSL_DIR/$1$KEY_FILE"
 }
 
 newkey_ca() {
   echo "newkey CA - not yet functional..."
-  # newkey $CA_KEY
+  # newkey "$CA_KEY"
 }
 
 newkey() {
@@ -98,7 +98,7 @@ update_help() {
 }
 
 update_client() {
-  update $SSL_DIR/$1$KEY_FILE $SSL_DIR/$1$CSR_FILE $SSL_DIR/$1$CONF_FILE $SSL_DIR/$1$CERT_FILE
+  update "$SSL_DIR/$1$KEY_FILE" "$SSL_DIR/$1$CSR_FILE" "$SSL_DIR/$1$CONF_FILE" "$SSL_DIR/$1$CERT_FILE"
 }
 
 update_ca() {
@@ -107,12 +107,12 @@ update_ca() {
 
 update() {
   echo "Create a new Certificate Request with existing Key..."
-  openssl req -new -key $1 -out $2 -config $3
+  openssl req -new -key "$1" -out "$2" -config "$3"
   echo "Use our CA to sign the Certificate Request..."
   # -batch  prevents openssl asking if we want to sign the certificate, and commit
   # -notext prevents the plain text details being included in the pem file
   # -create_serial creates the serial number file if it doesn't exist
-  openssl ca -in $2 -out $4 -batch -create_serial -config $CA_CONF
+  openssl ca -in "$2" -out "$4" -batch -create_serial -config "$CA_CONF"
   echo "...done!"
 }
 
@@ -127,15 +127,15 @@ show_help() {
 }
 
 show_client() {
-  show $SSL_DIR/$1$CERT_FILE
+  show "$SSL_DIR/$1$CERT_FILE"
 }
 
 show_ca() {
-  show $CA_CERT
+  show "$CA_CERT"
 }
 
 show() {
-  openssl x509 -in $1 -noout -text
+  openssl x509 -in "$1" -noout -text
 }
 
 
@@ -149,15 +149,15 @@ expiry_help() {
 }
 
 expiry_client() {
-  expiry $SSL_DIR/$1$CERT_FILE
+  expiry "$SSL_DIR/$1$CERT_FILE"
 }
 
 expiry_ca() {
-  expiry $CA_CERT
+  expiry "$CA_CERT"
 }
 
 expiry() {
-  local when=$(openssl x509 -in $1 -noout -enddate)
+  local when=$(openssl x509 -in "$1" -noout -enddate)
   echo "Expiry date/time: ${when:9}"
 }
 
@@ -177,7 +177,7 @@ case $1 in
         exit 1
         ;;
       *)
-        update_client $2
+        update_client "$2"
         ;;
     esac
     ;;
@@ -194,7 +194,7 @@ case $1 in
         exit 1
         ;;
       *)
-        newkey_client $2
+        newkey_client "$2"
         ;;
     esac
     ;;
@@ -211,7 +211,7 @@ case $1 in
         exit 1
         ;;
       *)
-        show_client $2
+        show_client "$2"
         ;;
     esac
     ;;
@@ -228,7 +228,7 @@ case $1 in
         exit 1
         ;;
       *)
-        expiry_client $2
+        expiry_client "$2"
         ;;
     esac
     ;;
