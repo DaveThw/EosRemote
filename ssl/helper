@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./helper newkey|update|show|expiry|help client-name
+# Usage: ./helper newconfig|newkey|update|show|expiry|help client-name
 
 # These lines taken from https://stackoverflow.com/a/1638397
 # Absolute path to this script, e.g. /home/user/pi/EosRemote/ssl/helper
@@ -21,21 +21,130 @@ CA_CONF="$SSL_DIR/ca$CONF_FILE"
 CA_CERT="$SSL_DIR/ca$CERT_FILE"
 CA_KEY="$CA_DIR/private/ca$KEY_FILE"
 
+NEW_CONFIG_COMMON_NAME=$(hostname -s)
+NEW_CONFIG_LONG_HOSTNAMES=($(hostname -A))
+NEW_CONFIG_IPS=($(hostname -I))
+
 
 
 usage() {
-  echo "Usage: $0 newkey|update|show|expiry|help [client-name]"
+  echo "Usage: $0 [action] [client-name]"
+  echo "       $0 help [action]"
 }
 
 help() {
   usage
   echo
-  echo "newkey client-name  Creates a new RSA key for the client"
-  echo "update client-name  Creates a new certificate for the client, from the key"
-  echo "show client-name    Show the details of the client certificate"
-  echo "expiry client-name  Show the expiry date/time of the client certificate"
-  echo "help                Show this help text"
+  echo "newkey client-name     Creates a new RSA key for the client"
+  echo "newconfig client-name  Creates an openssl configuration file for the client"
+  echo "update client-name     Creates a new certificate for the client, from the key"
+  echo "show client-name       Show the details of the client certificate"
+  echo "expiry client-name     Show the expiry date/time of the client certificate"
+  echo "help                   Show this help text"
 }
+
+
+
+newconfig_usage() {
+  usage
+}
+
+newconfig_help() {
+  help
+}
+
+newconfig_client() {
+  newconfig "$SSL_DIR/$1$CONF_FILE"
+}
+
+newconfig_ca() {
+  echo "newconfig CA - not yet functional..."
+  # newconfig "$CA_CONF"
+}
+
+newconfig() {
+  local var YN=Y
+  echo "Config. file: $1"
+  if [[ -e "$1" && -s "$1" ]]; then
+    # Config file exists, and is non-empty
+    local var BACKUP_DIR BACKUP
+    BACKUP_DIR=$(dirname "$1")
+    BACKUP=$(basename "$1")
+    BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
+    if [[ -e "$BACKUP" && -s "$BACKUP" ]]; then
+      # Backup config file exists, and is non-empty
+      #        |<-----------------------    This is 80 chars long!    ----------------------->|
+      echo    "Do you want to backup and replace the existing config file (the existing backup"
+      read -p "  file will be lost) (Y/n)? " YN
+    else
+      # Based on one of the answers here: https://stackoverflow.com/a/27875395
+      read -p "Do you want to backup and replace the existing config file (Y/n)? " YN
+    fi
+  fi
+  case ${YN:0:1} in
+    y|Y )
+      if [[ -e "$1" && -s "$1" ]]; then
+        echo "Moving existing config file to backup: $BACKUP"
+        mv "$1" "$BACKUP"
+      fi
+      echo -n "Writing new config file..."
+      cat <<EOT > "$1"
+#
+# OpenSSL configuration file.
+# This is mostly being used for generation of certificate requests.
+#
+# Based various example configuration files, modified and tweaked
+#  by DRT for EosRemote, to use as the configuration file for generating
+#  the HTTPS certificate request
+#
+
+[req]
+default_bits		= 2048
+default_md		= sha256
+string_mask		= utf8only
+req_extensions		= req_ext
+prompt			= no
+distinguished_name	= dn
+
+[ req_ext ]
+keyUsage		= critical, digitalSignature, keyEncipherment
+extendedKeyUsage	= serverAuth
+subjectAltName		= @alt_names
+
+[ dn ]
+C			= UK
+#ST			= County
+#L			= City
+O			= EosRemote
+OU			= EosRemote LAN Server
+CN			= ${NEW_CONFIG_COMMON_NAME}
+
+[ alt_names ]
+#email			= eosremote@dave.thwaites.org.uk
+EOT
+      local var i j=1
+      if ! [ -z "$NEW_CONFIG_COMMON_NAME" ]; then
+        echo "DNS.$((j++))			= ${NEW_CONFIG_COMMON_NAME}" >> "$1"
+      fi
+      for (( i=0; i<${#NEW_CONFIG_LONG_HOSTNAMES[@]}; i++ )); do
+        echo "DNS.$((i+j))			= ${NEW_CONFIG_LONG_HOSTNAMES[$i]}" >> "$1"
+      done
+      for (( i=0; i<${#NEW_CONFIG_IPS[@]}; i++ )); do
+        echo "IP.$((i+1))			= ${NEW_CONFIG_IPS[$i]}" >> "$1"
+      done
+      echo " done!"
+      #     |<-----------------------    This is 80 chars long!    ----------------------->|
+      echo
+      echo "Note: you should review the config file before generating your CSR, to check it"
+      echo " matches your requirements.  In particular, look at the [dn] and [alt_names]"
+      echo " sections."
+      ;;
+    * )
+      echo "Canceled"
+      ;;
+  esac
+}
+
 
 
 
@@ -164,6 +273,23 @@ expiry() {
 
 
 case $1 in
+  newConfig|newconfig|new_config)
+    case $2 in
+      CA|ca|Ca|cA)
+        newconfig_ca
+        ;;
+      help)
+        newconfig_help
+        ;;
+      "")
+        newconfig_usage
+        exit 1
+        ;;
+      *)
+        newconfig_client "$2"
+        ;;
+    esac
+    ;;
   update)
     case $2 in
       CA|ca|Ca|cA)
