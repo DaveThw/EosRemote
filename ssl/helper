@@ -63,11 +63,11 @@ newconfig_ca() {
 }
 
 newconfig() {
-  local var YN=Y
+  local YN=Y
   echo "Config. file: $1"
   if [[ -e "$1" && -s "$1" ]]; then
     # Config file exists, and is non-empty
-    local var BACKUP_DIR BACKUP
+    local BACKUP_DIR BACKUP
     BACKUP_DIR=$(dirname "$1")
     BACKUP=$(basename "$1")
     BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
@@ -122,7 +122,7 @@ CN			= ${NEW_CONFIG_COMMON_NAME}
 [ alt_names ]
 #email			= eosremote@dave.thwaites.org.uk
 EOT
-      local var i j=1
+      local i j=1
       if ! [ -z "$NEW_CONFIG_COMMON_NAME" ]; then
         echo "DNS.$((j++))			= ${NEW_CONFIG_COMMON_NAME}" >> "$1"
       fi
@@ -166,11 +166,11 @@ newkey_ca() {
 }
 
 newkey() {
-  local var YN=Y
+  local YN=Y
   echo "Key file: $1"
   if [[ -e "$1" && -s "$1" ]]; then
     # Key file exists, and is non-empty
-    local var BACKUP
+    local BACKUP_DIR BACKUP
     BACKUP_DIR=$(dirname "$1")
     BACKUP=$(basename "$1")
     BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
