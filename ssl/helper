@@ -45,6 +45,13 @@ help() {
 
 
 
+file_exists() {
+  [[ -e "$1" && -s "$1" ]]
+  return $?
+}
+
+
+
 newconfig_usage() {
   usage
 }
@@ -65,13 +72,13 @@ newconfig_ca() {
 newconfig() {
   local YN=Y
   echo "Config. file: $1"
-  if [[ -e "$1" && -s "$1" ]]; then
+  if file_exists "$1"; then
     # Config file exists, and is non-empty
     local BACKUP_DIR BACKUP
     BACKUP_DIR=$(dirname "$1")
     BACKUP=$(basename "$1")
     BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
-    if [[ -e "$BACKUP" && -s "$BACKUP" ]]; then
+    if file_exists "$BACKUP"; then
       # Backup config file exists, and is non-empty
       #        |<-----------------------    This is 80 chars long!    ----------------------->|
       echo    "Do you want to backup and replace the existing config file (the existing backup"
@@ -83,7 +90,7 @@ newconfig() {
   fi
   case ${YN:0:1} in
     y|Y )
-      if [[ -e "$1" && -s "$1" ]]; then
+      if file_exists "$1"; then
         echo "Moving existing config file to backup: $BACKUP"
         mv "$1" "$BACKUP"
       fi
@@ -168,7 +175,7 @@ newkey_ca() {
 newkey() {
   local YN=Y
   echo "Key file: $1"
-  if [[ -e "$1" && -s "$1" ]]; then
+  if file_exists "$1"; then
     # Key file exists, and is non-empty
     local BACKUP_DIR BACKUP
     BACKUP_DIR=$(dirname "$1")
@@ -177,7 +184,7 @@ newkey() {
     #     |<-----------------------    This is 80 chars long!    ----------------------->|
     echo "Warning: Replacing the existing key file will make any certificate and CSR files"
     echo "  based on that key no longer valid - proceed with caution!"
-    if [[ -e "$BACKUP" && -s "$BACKUP" ]]; then
+    if file_exists "$BACKUP"; then
       # Backup key file exists, and is non-empty
       #        |<-----------------------    This is 80 chars long!    ----------------------->|
       echo    "Do you want to backup and replace the existing key file (the existing backup"
@@ -189,7 +196,7 @@ newkey() {
   fi
   case ${YN:0:1} in
     y|Y )
-      if [[ -e "$1" && -s "$1" ]]; then
+      if file_exists "$1"; then
         echo "Moving existing key file to backup: $BACKUP"
         mv "$1" "$BACKUP"
       fi
