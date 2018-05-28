@@ -50,6 +50,13 @@ file_exists() {
   return $?
 }
 
+backup_file() {
+  local BACKUP_DIR BACKUP
+  BACKUP_DIR=$(dirname "$1")
+  BACKUP=$(basename "$1")
+  BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
+  echo "$BACKUP"
+}
 
 
 newconfig_usage() {
@@ -74,10 +81,7 @@ newconfig() {
   echo "Config. file: $1"
   if file_exists "$1"; then
     # Config file exists, and is non-empty
-    local BACKUP_DIR BACKUP
-    BACKUP_DIR=$(dirname "$1")
-    BACKUP=$(basename "$1")
-    BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
+    local BACKUP=$(backup_file "$1")
     if file_exists "$BACKUP"; then
       # Backup config file exists, and is non-empty
       #        |<-----------------------    This is 80 chars long!    ----------------------->|
@@ -177,10 +181,7 @@ newkey() {
   echo "Key file: $1"
   if file_exists "$1"; then
     # Key file exists, and is non-empty
-    local BACKUP_DIR BACKUP
-    BACKUP_DIR=$(dirname "$1")
-    BACKUP=$(basename "$1")
-    BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
+    local BACKUP=$(backup_file "$1")
     #     |<-----------------------    This is 80 chars long!    ----------------------->|
     echo "Warning: Replacing the existing key file will make any certificate and CSR files"
     echo "  based on that key no longer valid - proceed with caution!"
