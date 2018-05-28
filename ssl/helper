@@ -104,14 +104,14 @@ default_md		= sha256
 string_mask		= utf8only
 req_extensions		= req_ext
 prompt			= no
-distinguished_name	= dn
+distinguished_name	= d_name
 
 [ req_ext ]
 keyUsage		= critical, digitalSignature, keyEncipherment
 extendedKeyUsage	= serverAuth
 subjectAltName		= @alt_names
 
-[ dn ]
+[ d_name ]
 C			= UK
 #ST			= County
 #L			= City
@@ -136,8 +136,8 @@ EOT
       #     |<-----------------------    This is 80 chars long!    ----------------------->|
       echo
       echo "Note: you should review the config file before generating your CSR, to check it"
-      echo " matches your requirements.  In particular, look at the [dn] and [alt_names]"
-      echo " sections."
+      echo " matches your requirements.  In particular, look at the [d_name] and"
+      echo " [alt_names] sections."
       ;;
     * )
       echo "Canceled"
@@ -176,10 +176,12 @@ newkey() {
     BACKUP="$BACKUP_DIR${BACKUP_DIR:+/}${BACKUP%.*}$BACKUP_EXT"
     if [[ -e "$BACKUP" && -s "$BACKUP" ]]; then
       # Backup key file exists, and is non-empty
-      read -p "Do you want to replace the existing key (existing backup will be lost) (Y/n)? " YN
+      #        |<-----------------------    This is 80 chars long!    ----------------------->|
+      echo    "Do you want to backup and replace the existing key file (the existing backup"
+      read -p "  file will be lost) (Y/n)? " YN
     else
       # Based on one of the answers here: https://stackoverflow.com/a/27875395
-      read -p "Do you want to backup and replace the existing key (Y/n)? " YN
+      read -p "Do you want to backup and replace the existing key file (Y/n)? " YN
     fi
   fi
   case ${YN:0:1} in
