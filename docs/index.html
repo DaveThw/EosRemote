@@ -1254,13 +1254,16 @@
     }) );
 
     y++;
+/*
     panel.add( new Interface.Label({
       bounds: [x_base+0.00+margin, y_base+y*button_height+margin, button_width-2*margin, button_height-2*margin],
       value: "Command:",
       size: fontSize,
     }) );
+*/
     panel.add( new Interface.Label({
-      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+//      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      bounds: [x_base+0.00+margin, y_base+y*button_height+margin, 1.0-2*margin, button_height-2*margin],
       value: "<Command Line Text>",
       size: fontSize,
       key: '/eos/out/cmd',
