@@ -430,6 +430,18 @@
             else if (args[0]==="") child.setValue.apply( child, ['Off'] );
             else child.setValue.apply( child, args );
           }
+          if( child.key === '/eos/key/live' ) {
+            if (args[0]===1) {
+              child.background = '#0d0'; // fill colour (when not pressed)
+              child.stroke = '#333';     // text colour, and border colour
+              child.fill = '#0f0';       // fill colour (when pressed)
+            } else {
+              child.background = child.panel.childBackground;
+              child.stroke = child.panel.childStroke;
+              child.fill = child.panel.childFill;
+            }
+            child.refresh();
+          }
         }
       }
     }
@@ -1167,12 +1179,19 @@
       size: fontSize,
     }) );
     panel.add( new Interface.Label({
-      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (1.0-button_width)-2*margin, button_height-2*margin],
+      bounds: [x_base+0.00+button_width+margin, y_base+y*button_height+margin, (0.8-button_width)-2*margin, button_height-2*margin],
       value: "<Show Name>",
       size: fontSize,
       key: '/eos/out/show/name',
       hAlign: 'left',
       stroke: '#fff',
+    }) );
+
+    panel.add( new Interface.Button({
+      bounds: [0.80+margin, y_base+y*button_height+margin, 0.20-2*margin, button_height-2*margin],
+      target: "WebSocket", key: '/eos/key/live',
+      mode: 'momentary',
+      label: 'Live',
     }) );
 
     y++;
