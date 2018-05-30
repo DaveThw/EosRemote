@@ -454,7 +454,7 @@
       } else if ( args[0][0] == "LOCKED OUT" ) {
         var res=["LX Desk Locked","Locked",undefined,undefined,undefined,undefined,"LX Desk Locked"];
       } else {
-        var res=args[0][0].match(/^([^:]+): ((.+?)( +([0-9.]+))?) : (.*)$/);
+        var res=args[0][0].match(/^([^:]+): ((.+?)( +([0-9.]+))? : )?(.*)$/);
       }
       // res == null, if no match found...
       if ( res === null ) {
@@ -462,8 +462,8 @@
       }
       // res[0] = "<Original OSC String>"
       // res[1] = "LIVE|BLIND|other?.."
-      // res[2] = "[Cue|Sub|Setup|other...][  <Number>]"
-      // res[3] = "Cue|Sub|Setup|other..."
+      // res[2] = "[Cue|Sub|Setup|other...][  <Number>] : " (if present)
+      // res[3] = "Cue|Sub|Setup|other..." (if present)
       // res[4] = "  <Cue (or whatever) Number>" (if present)
       // res[5] = "<Cue (or whatever) Number>" (if present)
       // res[6] = "<Command Line Text>"
