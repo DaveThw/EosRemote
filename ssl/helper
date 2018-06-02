@@ -28,8 +28,12 @@ NEW_CONFIG_IPS=($(hostname -I))
 
 
 usage() {
-  echo "Usage: $0 [action] [client-name]"
-  echo "       $0 help [action]"
+  if [ $1 ]; then
+    echo "Usage: $0 $1 [client-name]"
+  else
+    echo "Usage: $0 [action] [client-name]"
+    echo "       $0 help [action]"
+  fi
 }
 
 help() {
@@ -61,7 +65,7 @@ backup_file() {
 
 
 newconfig_usage() {
-  usage
+  usage newconfig
 }
 
 newconfig_help() {
@@ -161,7 +165,7 @@ EOT
 
 
 newkey_usage() {
-  usage
+  usage newkey
 }
 
 newkey_help() {
@@ -220,7 +224,7 @@ newkey() {
 
 
 createcsr_usage() {
-  echo "Usage: $0 createcsr [client-name]"
+  usage createcsr
 }
 
 createcsr_help() {
@@ -289,7 +293,7 @@ createcsr() {
 
 
 update_usage() {
-  usage
+  usage update
 }
 
 update_help() {
@@ -318,7 +322,7 @@ update() {
 
 
 show_usage() {
-  usage
+  usage show
 }
 
 show_help() {
@@ -340,7 +344,7 @@ show() {
 
 
 expiry_usage() {
-  usage
+  usage expiry
 }
 
 expiry_help() {
