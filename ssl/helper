@@ -204,7 +204,12 @@ newkey() {
       fi
       echo "Generating new key file:"
       openssl genrsa -out "$1" 2048
-      echo "New key file: done!"
+      if [ $? -eq 0 ]; then
+        echo "New key file: done!"
+      else
+        echo "New key file: failed"
+        exit 1
+      fi;
       ;;
     * )
       echo "Cancelled"
