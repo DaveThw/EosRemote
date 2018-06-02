@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./helper newconfig|newkey|update|show|expiry|help client-name
+# Usage: ./helper newconfig|newkey|createcsr|update|show|expiry|help client-name
 
 # These lines taken from https://stackoverflow.com/a/1638397
 # Absolute path to this script, e.g. /home/user/pi/EosRemote/ssl/helper
@@ -37,6 +37,7 @@ help() {
   echo
   echo "newkey client-name     Creates a new RSA key for the client"
   echo "newconfig client-name  Creates an openssl configuration file for the client"
+  echo "createcsr client-name  Creates a CSR for the client, from the config and key"
   echo "update client-name     Creates a new certificate for the client, from the key"
   echo "show client-name       Show the details of the client certificate"
   echo "expiry client-name     Show the expiry date/time of the client certificate"
@@ -151,7 +152,7 @@ EOT
       echo " [alt_names] sections."
       ;;
     * )
-      echo "Canceled"
+      echo "Cancelled"
       ;;
   esac
 }
@@ -206,7 +207,76 @@ newkey() {
       echo "New key file: done!"
       ;;
     * )
-      echo "Canceled"
+      echo "Cancelled"
+      ;;
+  esac
+}
+
+
+
+createcsr_usage() {
+  echo "Usage: $0 createcsr [client-name]"
+}
+
+createcsr_help() {
+  help
+}
+
+createcsr_client() {
+  createcsr "$1" "$SSL_DIR/$1$KEY_FILE" "$SSL_DIR/$1$CSR_FILE" "$SSL_DIR/$1$CONF_FILE"
+}
+
+createcsr_ca() {
+  echo "createcsr CA - not yet functional..."
+}
+
+createcsr() {
+  if ! file_exists "$2"; then
+    # Key file doesn't exist, or is empty
+    echo "Error: Key file not found!"
+    echo "(Hint: Run '$0 newkey $1' first, then try again...)"
+    exit 1
+  fi
+  if ! file_exists "$4"; then
+    # Config file doesn't exist, or is empty
+    echo "Error: Config file not found!"
+    echo "(Hint: Run '$0 newconfig $1' first, then try again...)"
+    exit 1
+  fi
+  local YN=Y
+  echo "CSR file: $3"
+  if file_exists "$3"; then
+    # CSR file exists, and is non-empty
+    local BACKUP=$(backup_file "$3")
+    if file_exists "$BACKUP"; then
+      # Backup CSR file exists, and is non-empty
+      #        |<-----------------------    This is 80 chars long!    ----------------------->|
+      echo    "Do you want to backup and replace the existing CSR file (the existing backup"
+      read -p "  file will be lost) (Y/n)? " YN
+    else
+      # Based on one of the answers here: https://stackoverflow.com/a/27875395
+      read -p "Do you want to backup and replace the existing CSR file (Y/n)? " YN
+    fi
+  fi
+  case ${YN:0:1} in
+    y|Y )
+      if file_exists "$3"; then
+        echo "Moving existing CSR file to backup: $BACKUP"
+        mv "$3" "$BACKUP"
+      fi
+      echo -n "Creating Certificate Signing Request... "
+      res=$(openssl req -new -key "$2" -out "$3" -config "$4" 2>&1)
+      if [ $? -eq 0 ]; then
+        echo "done!"
+      else
+        echo
+        echo "$res"
+        echo "CSR creation failed"
+        exit 1
+      fi;
+      ;;
+    * )
+      echo "Cancelled"
       ;;
   esac
 }
@@ -288,6 +358,23 @@ expiry() {
 
 
 case $1 in
+  newKey|newkey|new_key)
+    case $2 in
+      CA|ca|Ca|cA)
+        newkey_ca
+        ;;
+      help)
+        newkey_help
+        ;;
+      "")
+        newkey_usage
+        exit 1
+        ;;
+      *)
+        newkey_client "$2"
+        ;;
+    esac
+    ;;
   newConfig|newconfig|new_config)
     case $2 in
       CA|ca|Ca|cA)
@@ -305,6 +392,23 @@ case $1 in
         ;;
     esac
     ;;
+  createcsr|createCSR|create_csr|create_CSR)
+    case $2 in
+      CA|ca|Ca|cA)
+        createcsr_ca
+        ;;
+      help)
+        createcsr_help
+        ;;
+      "")
+        createcsr_usage
+        exit 1
+        ;;
+      *)
+        createcsr_client "$2"
+        ;;
+    esac
+    ;;
   update)
     case $2 in
       CA|ca|Ca|cA)
@@ -319,23 +423,6 @@ case $1 in
         ;;
       *)
         update_client "$2"
-        ;;
-    esac
-    ;;
-  newKey|newkey|new_key)
-    case $2 in
-      CA|ca|Ca|cA)
-        newkey_ca
-        ;;
-      help)
-        newkey_help
-        ;;
-      "")
-        newkey_usage
-        exit 1
-        ;;
-      *)
-        newkey_client "$2"
         ;;
     esac
     ;;
