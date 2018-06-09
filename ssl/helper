@@ -68,6 +68,7 @@ backup_file() {
 }
 
 
+
 newconfig_usage() {
   usage newconfig
 }
@@ -164,7 +165,6 @@ EOT
       ;;
   esac
 }
-
 
 
 
@@ -472,9 +472,18 @@ expiry_ca() {
 }
 
 expiry() {
-  local when=$(openssl x509 -in "$1" -noout -enddate)
-  echo "Expiry date/time: ${when:9}"
+  echo "Certificate file: $1"
+  if file_exists "$1"; then
+    # Certificate file exists, and is not empty
+    local when=$(openssl x509 -in "$1" -noout -enddate)
+    echo "Expiry date/time: ${when:9}"
+  else
+    echo "Error: Certificate file not found!"
+    exit 1
+  fi
 }
+
+
 
 
 case $(echo "$1" | tr "[:upper:] -." "[:lower:]_") in
