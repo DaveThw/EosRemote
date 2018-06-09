@@ -477,151 +477,170 @@ expiry() {
 }
 
 
-
-case $1 in
-  newKey|newkey|new_key)
-    case $2 in
-      CA|ca|Ca|cA)
-        newkey_ca
-        ;;
-      help)
-        newkey_help
-        ;;
-      "")
-        newkey_usage
-        exit 1
-        ;;
-      *)
-        newkey_client "$2"
-        ;;
-    esac
+case $(echo "$1" | tr "[:upper:] -." "[:lower:]_") in
+  newkey|new_key)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          newkey_ca
+          ;;
+        help)
+          newkey_help
+          ;;
+        *)
+          newkey_client "$2"
+          ;;
+      esac
+    else
+      newkey_usage
+      exit 1
+    fi
     ;;
-  newConfig|newconfig|new_config)
-    case $2 in
-      CA|ca|Ca|cA)
-        newconfig_ca
-        ;;
-      help)
-        newconfig_help
-        ;;
-      "")
-        newconfig_usage
-        exit 1
-        ;;
-      *)
-        newconfig_client "$2"
-        ;;
-    esac
+  newconfig|new_config)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          newconfig_ca
+          ;;
+        help)
+          newconfig_help
+          ;;
+        *)
+          newconfig_client "$2"
+          ;;
+      esac
+    else
+      newconfig_usage
+      exit 1
+    fi
     ;;
-  createcsr|createCSR|create_csr|create_CSR)
-    case $2 in
-      CA|ca|Ca|cA)
-        createcsr_ca
-        ;;
-      help)
-        createcsr_help
-        ;;
-      "")
-        createcsr_usage
-        exit 1
-        ;;
-      *)
-        createcsr_client "$2"
-        ;;
-    esac
+  createcsr|create_csr)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          createcsr_ca
+          ;;
+        help)
+          createcsr_help
+          ;;
+        *)
+          createcsr_client "$2"
+          ;;
+      esac
+    else
+      createcsr_usage
+      exit 1
+    fi
     ;;
-  showcsr|showCSR|show_csr|show_CSR)
-    case $2 in
-      CA|ca|Ca|cA)
-        showcsr_ca
-        ;;
-      help)
-        showcsr_help
-        ;;
-      "")
-        showcsr_usage
-        exit 1
-        ;;
-      *)
-        showcsr_client "$2"
-        ;;
-    esac
+  showcsr|show_csr)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          showcsr_ca
+          ;;
+        help)
+          showcsr_help
+          ;;
+        *)
+          showcsr_client "$2"
+          ;;
+      esac
+    else
+      showcsr_usage
+      exit 1
+    fi
     ;;
-  signcsr|signCSR|sign_csr|sign_CSR)
-    case $2 in
-      CA|ca|Ca|cA)
-        signcsr_ca
-        ;;
-      help)
-        signcsr_help
-        ;;
-      "")
-        signcsr_usage
-        exit 1
-        ;;
-      *)
-        signcsr_client "$2"
-        ;;
-    esac
+  signcsr|sign_csr)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          signcsr_ca
+          ;;
+        help)
+          signcsr_help
+          ;;
+        *)
+          signcsr_client "$2"
+          ;;
+      esac
+    else
+      signcsr_usage
+      exit 1
+    fi
     ;;
   update)
-    case $2 in
-      CA|ca|Ca|cA)
-        update_ca
-        ;;
-      help)
-        update_help
-        ;;
-      "")
-        update_usage
-        exit 1
-        ;;
-      *)
-        update_client "$2"
-        ;;
-    esac
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          update_ca
+          ;;
+        help)
+          update_help
+          ;;
+        *)
+          update_client "$2"
+          ;;
+      esac
+    else
+      update_usage
+      exit 1
+    fi
     ;;
   show)
-    case $2 in
-      CA|ca|Ca|cA)
-        show_ca
-        ;;
-      help)
-        show_help
-        ;;
-      "")
-        show_usage
-        exit 1
-        ;;
-      *)
-        show_client "$2"
-        ;;
-    esac
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          show_ca
+          ;;
+        help)
+          show_help
+          ;;
+        *)
+          show_client "$2"
+          ;;
+      esac
+    else
+      show_usage
+      exit 1
+    fi
     ;;
-  expiry|enddate)
-    case $2 in
-      CA|ca|Ca|cA)
-        expiry_ca
-        ;;
-      help)
-        expiry_help
-        ;;
-      "")
-        expiry_usage
-        exit 1
-        ;;
-      *)
-        expiry_client "$2"
-        ;;
-    esac
+  expiry|enddate|end_date)
+    if [ $# -eq 2 ]; then
+      case $(echo "$2" | tr "[:upper:]" "[:lower:]") in
+        ca)
+          expiry_ca
+          ;;
+        help)
+          expiry_help
+          ;;
+        *)
+          expiry_client "$2"
+          ;;
+      esac
+    else
+      expiry_usage
+      exit 1
+    fi
     ;;
   help)
-    case $2 in
+    case $(echo "$2" | tr "[:upper:] -." "[:lower:]_") in
+      newkey|new_key)
+        newkey_help
+        ;;
+      newconfig|new_config)
+        newconfig_help
+        ;;
+      createcsr|create_csr)
+        createcsr_help
+        ;;
+      showcsr|show_csr)
+        showcsr_help
+        ;;
+      signcsr|sign_csr)
+        signcsr_help
+        ;;
       update)
         update_help
-        ;;
-      newKey|newkey|new_key)
-        newkey_help
         ;;
       show)
         show_help
