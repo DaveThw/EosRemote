@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./helper newconfig|newkey|createcsr|update|show|expiry|help client-name
+# Usage: ./helper newconfig|newkey|createcsr|signcsr|update|show|expiry|help client-name
 
 # These lines taken from https://stackoverflow.com/a/1638397
 # Absolute path to this script, e.g. /home/user/pi/EosRemote/ssl/helper
@@ -39,9 +39,12 @@ usage() {
 help() {
   usage
   echo
+  #     |<-----------------------    This is 80 chars long!    ----------------------->|
   echo "newkey client-name     Creates a new RSA key for the client"
   echo "newconfig client-name  Creates an openssl configuration file for the client"
   echo "createcsr client-name  Creates a CSR for the client, from the config and key"
+  echo "signcsr client-name    Use the local CA to sign the CSR for the client,"
+  echo "                       creating a new certificate"
   echo "update client-name     Creates a new certificate for the client, from the key"
   echo "show client-name       Show the details of the client certificate"
   echo "expiry client-name     Show the expiry date/time of the client certificate"
@@ -292,6 +295,78 @@ createcsr() {
 
 
 
+signcsr_usage() {
+  usage signcsr
+}
+
+signcsr_help() {
+  help
+}
+
+signcsr_client() {
+  signcsr "$1" "$SSL_DIR/$1$CSR_FILE" "$SSL_DIR/$1$CERT_FILE"
+}
+
+signcsr_ca() {
+  echo "signcsr CA - not yet functional..."
+}
+
+signcsr() {
+  if ! file_exists "$2"; then
+    # CSR file doesn't exist, or is empty
+    echo "Error: CSR file not found!"
+    echo "(Hint: Run '$0 createcsr $1' first, then try again...)"
+    exit 1
+  fi
+  if ! file_exists "$CA_CONF"; then
+    # CA config file doesn't exist, or is empty
+    echo "Error: Local CA not found!"
+    # echo "(Hint: Run '$0 setup CA' first, then try again...)"
+    exit 1
+  fi
+  local YN=Y
+  echo "Certificate file: $3"
+  if file_exists "$3"; then
+    # Certificate file exists, and is non-empty
+    local BACKUP=$(backup_file "$3")
+    if file_exists "$BACKUP"; then
+      # Backup Certificate file exists, and is non-empty
+      #        |<-----------------------    This is 80 chars long!    ----------------------->|
+      echo    "Do you want to backup and replace the existing Certificate file (the existing"
+      read -p "  backup file will be lost) (Y/n)? " YN
+    else
+      # Based on one of the answers here: https://stackoverflow.com/a/27875395
+      read -p "Do you want to backup and replace the existing Certificate file (Y/n)? " YN
+    fi
+  fi
+  case ${YN:0:1} in
+    y|Y )
+      if file_exists "$3"; then
+        echo "Moving existing Certificate file to backup: $BACKUP"
+        mv "$3" "$BACKUP"
+      fi
+      echo -n "Using local CA to sign the Certificate Request... "
+      # -batch  prevents openssl asking if we want to sign the certificate, and commit
+      # -notext prevents the plain text details being included in the pem file
+      # -create_serial creates the serial number file if it doesn't exist
+      res=$(openssl ca -in "$2" -out "$3" -batch -create_serial -config "$CA_CONF" 2>&1)
+      if [ $? -eq 0 ]; then
+        echo "done!"
+      else
+        echo
+        echo "$res"
+        echo "CSR singing failed"
+        exit 1
+      fi;
+      ;;
+    * )
+      echo "Cancelled"
+      ;;
+  esac
+}
+
+
+
 update_usage() {
   usage update
 }
@@ -415,6 +490,23 @@ case $1 in
         ;;
       *)
         createcsr_client "$2"
+        ;;
+    esac
+    ;;
+  signcsr|signCSR|sign_csr|sign_CSR)
+    case $2 in
+      CA|ca|Ca|cA)
+        signcsr_ca
+        ;;
+      help)
+        signcsr_help
+        ;;
+      "")
+        signcsr_usage
+        exit 1
+        ;;
+      *)
+        signcsr_client "$2"
         ;;
     esac
     ;;
