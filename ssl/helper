@@ -413,7 +413,14 @@ show_ca() {
 }
 
 show() {
-  openssl x509 -in "$1" -noout -text
+  echo "Certificate file: $1"
+  if file_exists "$1"; then
+    # Certificate file exists, and is not empty
+    openssl x509 -in "$1" -noout -text
+  else
+    echo "Error: Certificate file not found!"
+    exit 1
+  fi
 }
 
 
