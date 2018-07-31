@@ -525,3 +525,56 @@ Certificate:
          e6:e4:80:1c
 ```
 ... to be continued!
+
+
+-----------------------------------------------------------------------
+
+
+# Notes on how to install / set up a Raspberry Pi, from scratch!
+
+(Working on a Raspberry Pi 1, using June 2018 [Raspbian Image](https://www.raspberrypi.org/downloads/raspbian/) (release date: 2018-06-27), doing the set-up on 2018-07-29)
+
+- Flash latest [Raspbian Image](https://www.raspberrypi.org/downloads/raspbian/) onto an SD card (tested using the June 2018 image) - [see here for notes about doing it on a Chromebook](https://davethw.github.io//theatre-royal/eos-remote/Flashing-RaspberryPi-Image.html)
+- Boot up the Raspberry Pi - you'll need a monitor and mouse connected, maybe also a keyboard
+- On first boot, you get a 'Welcome to Raspbery Pi' intro:
+  - Set Country/location details first (Country: United Kingdom / Language: British English / Timezone: London)
+  - Change default password (needs a keyboard!..) (just click 'next' to skip for now)
+  - Check for updates (click 'Next') - takes a little while (~15-30(?) minutes on a RPi1, a month after the release...)
+  - Initial setup is complete - press 'Reboot' to reboot!
+  - You may get a 'Raspbian has been updated' message, telling you some configuration files have been overwritten...  (backups in ~/oldconffiles)
+- From the Applications menu, choose Preferences -> Raspberry Pi Configuration
+  - Under System, choose a fixed resolution (if you want to connect with VNC, without a monitor connected) - maybe CEA mode 4 1280x720..?
+  - It's also useful to Disable Underscan for VNC, as Underscan just reduces the resolution of the display (1280x720 becomes 1184x624!)
+  - Under Interfaces, turn on (SSH and) VNC
+  - Reboot
+- You should now be able to connect using VNC to the Pi's IP address, display 0 - eg 192.168.1.80:0 - and you should therefore be able to disconnect the monitor and mouse (and keyboard) if you wish, and complete the rest of the setup remotely.
+- SSH will warn you that you haven't changed the default password for the 'pi' user - this is a security risk!
+  - Applications menu -> Preferences -> Raspberry Pi Configuration -> System -> Change Password
+- Applications menu -> Preferences -> Raspberry Pi Configuration -> System -> Hostname
+  - eosremote
+  - Reboot
+- Maybe look at Applications menu -> Preferences -> Raspberry Pi Configuration -> Localisation
+  - WiFi Country: GB Britain (UK)
+- Install Node-RED:
+  - Applications menu -> Preference -> Recommended Software -> Programming
+  - Tick the box next to Node-RED, then click OK to install
+  - (should now be able to upgrade Node-RED with `sudo apt upgrade`..?  See https://nodered.org/docs/hardware/raspberrypi)
+
+- VNC Server -> Sign In to account
+  - useful for connecting from VNC Connect client!
+- Install EosRemote
+  - follow / check my instructions!..
+```shell
+~ $ cd
+~ $ git clone https://github.com/DaveThw/EosRemote.git
+~ $ cd ~/EosRemote
+~/EosRemote $ ln -sb $(pwd)/node-red/package.json ~/.node-red/
+~/EosRemote $ ln -sb $(pwd)/node-red/settings.js ~/.node-red/
+~/EosRemote $ ln -s $(pwd)/docs/ ~/www
+~/EosRemote $ cd ~/.node-red
+~/.node-red $ npm install
+```
+  - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
+- Create SSL Certificate for HTTPS/WSS
+  - for multiple IP addresses..?
+```shell
