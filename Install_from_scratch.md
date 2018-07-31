@@ -575,6 +575,3 @@ Certificate:
 ~/.node-red $ npm install
 ```
   - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
-- Create SSL Certificate for HTTPS/WSS
-  - for multiple IP addresses..?
-```shell
