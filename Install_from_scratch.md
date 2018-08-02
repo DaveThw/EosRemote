@@ -554,24 +554,30 @@ Certificate:
   - eosremote
   - Reboot
 - Maybe look at Applications menu -> Preferences -> Raspberry Pi Configuration -> Localisation
-  - WiFi Country: GB Britain (UK)
+  - WiFi Country: GB Britain (UK)
 - Install Node-RED:
   - Applications menu -> Preference -> Recommended Software -> Programming
   - Tick the box next to Node-RED, then click OK to install
-  - (should now be able to upgrade Node-RED with `sudo apt upgrade`..?  See https://nodered.org/docs/hardware/raspberrypi)
-
+  - (should now be able to upgrade Node-RED with `sudo apt upgrade`  See https://nodered.org/docs/hardware/raspberrypi)
 - VNC Server -> Sign In to account
   - useful for connecting from VNC Connect client!
+- Check if node.js and/or npm is installed:
+  - `~ $ node -v` -> `v.8.11.1`
+  - `~ $ npm -v` -> `bash: npm: command not found`
+  - It would seem that node.js got installed somewhere along the line (maybe when we installed Node-RED..?), but npm did not...
+    - If so, install npm with `sudo apt install npm` (I think that's the 'best' way..?)
+    - installs a whole bunch of extra dependancies - took about 4-5mins
+    - `~ $ npm -v` -> `1.4.21`
 - Install EosRemote
-  - follow / check my instructions!..
+  - follow my instructions!..
 ```shell
 ~ $ cd
 ~ $ git clone https://github.com/DaveThw/EosRemote.git
-~ $ cd ~/EosRemote
+~ $ cd ~/EosRemote/
 ~/EosRemote $ ln -sb $(pwd)/node-red/package.json ~/.node-red/
 ~/EosRemote $ ln -sb $(pwd)/node-red/settings.js ~/.node-red/
 ~/EosRemote $ ln -s $(pwd)/docs/ ~/www
 ~/EosRemote $ cd ~/.node-red
 ~/.node-red $ npm install
 ```
-  - (`npm install` took approx. 13mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field...)
+  - (`npm install` took approx. 14mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field, or README data...)
