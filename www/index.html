@@ -8,11 +8,13 @@
 // Create WebSocket connection.
 console.log('Creating WebSocket...');
 var socket = new WebSocket('ws://192.168.1.2:8081');
+//document.getElementById("socketStatusStatus").innerHTML = "Connecting...";
 
 // Connection opened
 //socket.addEventListener('open', function (event) {
 socket.onopen = function (event) {
     console.log('WebSocket open');
+    document.getElementById("socketStatusStatus").innerHTML = "Open";
 };
 
 // Listen for messages
@@ -22,16 +24,24 @@ socket.onmessage = function (event) {
     console.log('Message from server:', message);
     document.getElementById("address").innerHTML = message.address;
     document.getElementById("args").innerHTML = JSON.stringify(message.args);
+    
+    if ( oscElements[message.address] !== undefined ) {
+      oscElements[message.address].forEach( function (item, index, list) {
+        item.func(item.element, message.args);
+      });
+    }
 };
 
 // Connection closed
 socket.onclose = function (event) {
     console.log('WebSocket closed');
+    document.getElementById("socketStatusStatus").innerHTML = "Closed";
 };
 
 // Connection error
 socket.onerror = function (event) {
     console.log('WebSocket error', event);
+    document.getElementById("socketStatusStatus").innerHTML = "Error - Open?";
 };
 
 //var sayHello = function () {
@@ -79,21 +89,50 @@ function sendOSC(message) {
     <body>
         <h1>OSC WebSocket Test</h1>
 
-        <div id="messageArea">
-            <p id="messageLabel">OSC Message:</p>
-            <pre id="address"></pre>
-            <pre id="args"></pre>
+        <div id="socketStatus">
+            <p id="socketStatusLabel">Socket Status: <span id="socketStatusStatus">???</span></p>
         </div>
 
-        <button data-osc-address="/eos/key/1" onclick="sendOSCclick(this)">1</button>
-        <button data-osc-address="/eos/key/2" onclick="sendOSCclick(this)">2</button>
-        <button data-osc-address="/eos/key/3" onclick="sendOSCclick(this)">3</button>
-        <button data-osc-address="/eos/key/4" onclick="sendOSCclick(this)">4</button>
-        <button data-osc-address="/eos/key/5" onclick="sendOSCclick(this)">5</button>
-        <button data-osc-address="/eos/key/6" onclick="sendOSCclick(this)">6</button>
-        <button data-osc-address="/eos/key/7" onclick="sendOSCclick(this)">7</button>
-        <button data-osc-address="/eos/key/8" onclick="sendOSCclick(this)">8</button>
-        <button data-osc-address="/eos/key/9" onclick="sendOSCclick(this)">9</button>
-        <button data-osc-address="/eos/key/0" onclick="sendOSCclick(this)">0</button>
+        <div id="messageArea">
+            <p id="messageLabel">OSC Message:</p>
+            <pre id="address">???</pre>
+            <pre id="args">???</pre>
+            <p>Command Line: <span data-osc-update-address="/eos/out/cmd" class="oscUpdate">???</span></p>
+            <p>Background Command Line: <span data-osc-update-address="/eos/out/user/0/cmd" class="oscUpdate">???</span></p>
+            <p>Current Cue: <span data-osc-update-address="/eos/out/active/cue/text" class="oscUpdate">???</span></p>
+            <p>Pending Cue: <span data-osc-update-address="/eos/out/pending/cue/text" class="oscUpdate">???</span></p>
+            <p>Next Cue: <span data-osc-update-address="/eos/out/pending/cue/text" class="oscUpdate">???</span></p>
+        </div>
+
+        <script type="text/javascript">
+
+var oscElements = {};
+
+function updateOSCElement(element, messageArgs) {
+    element.innerHTML = messageArgs[0];
+}
+
+function storeOSCElement(element, index, nodeList) {
+    if ( oscElements[element.dataset.oscUpdateAddress] === undefined) oscElements[element.dataset.oscUpdateAddress] = [];
+    oscElements[element.dataset.oscUpdateAddress].push({func: updateOSCElement, element: element});
+}
+
+document.querySelectorAll(".oscUpdate").forEach(storeOSCElement);
+
+        </script>
+
+        <div>
+          <button data-osc-address="/eos/key/1" onclick="sendOSCclick(this)">1</button>
+          <button data-osc-address="/eos/key/2" onclick="sendOSCclick(this)">2</button>
+          <button data-osc-address="/eos/key/3" onclick="sendOSCclick(this)">3</button>
+          <button data-osc-address="/eos/key/4" onclick="sendOSCclick(this)">4</button>
+          <button data-osc-address="/eos/key/5" onclick="sendOSCclick(this)">5</button>
+          <button data-osc-address="/eos/key/6" onclick="sendOSCclick(this)">6</button>
+          <button data-osc-address="/eos/key/7" onclick="sendOSCclick(this)">7</button>
+          <button data-osc-address="/eos/key/8" onclick="sendOSCclick(this)">8</button>
+          <button data-osc-address="/eos/key/9" onclick="sendOSCclick(this)">9</button>
+          <button data-osc-address="/eos/key/0" onclick="sendOSCclick(this)">0</button>
+        </div>
+
     </body>
 </html>
