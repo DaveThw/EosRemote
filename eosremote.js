@@ -1,4 +1,7 @@
-var osc = require("osc");
+var OSC = require("osc-js");
+var TCPClientPlugin = require('./tcpclient');
+// var TCPClient = require('./tcpclient');
+// var TCPClientPlugin = TCPClient.TCPClientPlugin;
 
 /****************
  * OSC Over TCP *
@@ -23,62 +26,13 @@ var getIPAddresses = function () {
 };
 
 
-
-var tcpSocketPort = new osc.TCPSocketPort({
-//    localAddress: "0.0.0.0",
-//    localPort: 57121,
-    address: "10.101.100.101",
-    // Port 3032 is the official OSC port - only works if OSC is enabled in settings
-    //port: 3032,
-    // Port 3036 seems to be the port used by the aRFR / iRFR app
-    //  - always available
-    //  - updated more regularly that the OSC port (for things like running cue progress)
-    //  - seems to be fixed on OSC v.1.0 (non-SLIP encoding)
-    port: 3036,
-    useSLIP: false
+const osc = new OSC({
+  discardLateMessages: false, /* ignores messages which timetags lie in the past */
+  plugin: new TCPClientPlugin( { host: '10.101.100.101', port: 3036 } ), /* plugin for network communication */ 
 });
 
-
-
-//console.log("TCP Socket Port 'data' listeners:", tcpSocketPort.listeners('data'));
-
-//tcpSocketPort.removeListener("data", osc.SLIPPort.decodeOSC);
-//tcpSocketPort.removeListener("data", tcpSocketPort.decodeOSC);
-//tcpSocketPort.removeListener("data", osc.Port.prototype.decodeOSC);
-tcpSocketPort.removeAllListeners("data");
-
-//console.log("TCP Socket Port 'data' listeners:", tcpSocketPort.listeners('data'));
-
-tcpSocketPort.on("data", function (data, packetInfo) {
-    data = osc.byteArray(data);
-    this.emit("raw", data, packetInfo);
-
-    console.log("OSC Packet(s) Received");
-    // console.log("Raw OSC:", data);
-
-    try {
-
-        var i=0;
-        while (i < data.byteLength) {
-            var len = (data[i]<<24) + (data[i+1]<<16) + (data[i+2]<<8) + data[i+3];
-            i += 4;
-
-            var packet = osc.readPacket(data, this.options, { idx: i }, len);
-            this.emit("osc", packet, packetInfo);
-            osc.firePacketEvents(this, packet, undefined, packetInfo);
-
-            i += len;
-        }
-    } catch (err) {
-        this.emit("error", err);
-    }
-});
-
-// console.log("TCP Socket Port 'data' listeners:", tcpSocketPort.listeners('data'));
-
-
-
-tcpSocketPort.on("ready", function () {
+osc.on('open', () => {
+  // connection was established
     var ipAddresses = getIPAddresses();
 
     console.log("Listening for OSC over TCP.");
@@ -88,55 +42,18 @@ tcpSocketPort.on("ready", function () {
     console.log(" Remote:", tcpSocketPort.options.address + ", Port:", tcpSocketPort.options.port);
 });
 
-
-
-tcpSocketPort.on("message", function (oscMessage) {
-    // console.log("OSC Received:", oscMessage);
-    console.log(" OSC Received:", oscMessage.address, '= "' + oscMessage.args.join('", "') + '"');
+osc.on('close', () => {
+  // connection was closed
+    console.log("OSC/TCP socket closed");
 });
 
-
-
-tcpSocketPort.on("error", function (err) {
+osc.on('error', (err) => {
+  // an error occurred
     console.log(err);
 });
 
+osc.on('*', message => {
+    console.log("OSC Message:", message.args); // prints the message arguments
+});
 
-
-// Port 3032 is the official OSC port - only works if OSC is enabled in settings
-// tcpSocketPort.open("10.101.100.101", 3032);
-// Port 3036 seems to be the port used by the aRFR / iRFR app - always available 
-// tcpSocketPort.open("10.101.100.101", 3036);
-tcpSocketPort.open();
-
-
-
-setTimeout(function() {
-    var msg = {
-        address: "/eos/key/0",
-        args: [
-            {
-                type: "i",
-                value: 1
-            }
-        ]
-    };
-
-    console.log("Sending message", msg.address, msg.args, "to", tcpSocketPort.options.address + ":" + tcpSocketPort.options.port);
-    tcpSocketPort.send(msg);
-}, 2000);
-
-setTimeout(function() {
-    var msg = {
-        address: "/eos/key/0",
-        args: [
-            {
-                type: "i",
-                value: 0
-            }
-        ]
-    };
-
-    console.log("Sending message", msg.address, msg.args, "to", tcpSocketPort.options.address + ":" + tcpSocketPort.options.port);
-    tcpSocketPort.send(msg);
-}, 2500);
+osc.open();
