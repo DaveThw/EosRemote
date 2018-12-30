@@ -1,59 +1,87 @@
-var OSC = require("osc-js");
-var TCPClientPlugin = require('./tcpclient');
-// var TCPClient = require('./tcpclient');
-// var TCPClientPlugin = TCPClient.TCPClientPlugin;
+const oscmsg = require("osc-msg");
+const net = require('net');
+
 
 /****************
  * OSC Over TCP *
  ****************/
 
-var getIPAddresses = function () {
-    var os = require("os"),
-        interfaces = os.networkInterfaces(),
-        ipAddresses = [];
-
-    for (var deviceName in interfaces) {
-        var addresses = interfaces[deviceName];
-        for (var i = 0; i < addresses.length; i++) {
-            var addressInfo = addresses[i];
-            if (addressInfo.family === "IPv4" && !addressInfo.internal) {
-                ipAddresses.push(addressInfo.address);
-            }
-        }
-    }
-
-    return ipAddresses;
-};
-
-
-const osc = new OSC({
-  discardLateMessages: false, /* ignores messages which timetags lie in the past */
-  plugin: new TCPClientPlugin( { host: '10.101.100.101', port: 3036 } ), /* plugin for network communication */ 
-});
-
-osc.on('open', () => {
+// Port 3032 is the official OSC port
+//  - only works if OSC is enabled in settings
+// Port 3036 seems to be the port used by the aRFR / iRFR app
+//  - always available
+//  - updated more regularly that the OSC port (for things like running cue progress)
+//  - seems to be fixed on OSC v.1.0 (non-SLIP encoding)
+var socket = net.createConnection( { host: '10.101.100.101', port: 3036 }, () => {
   // connection was established
-    var ipAddresses = getIPAddresses();
 
-    console.log("Listening for OSC over TCP.");
-    ipAddresses.forEach(function (address) {
-        console.log(" Host:", address + ", Port:", tcpSocketPort.options.localPort);
-    });
-    console.log(" Remote:", tcpSocketPort.options.address + ", Port:", tcpSocketPort.options.port);
+    console.log("Connected to remote OSC Server, via TCP:");
+    console.log(" Remote Address:", socket.remoteAddress + ", Port:", socket.remotePort);
 });
 
-osc.on('close', () => {
+socket.on('close', () => {
   // connection was closed
     console.log("OSC/TCP socket closed");
 });
 
-osc.on('error', (err) => {
+socket.on('error', (err) => {
   // an error occurred
-    console.log(err);
+    console.log("OSC/TCP socket error:", err);
 });
 
-osc.on('*', message => {
-    console.log("OSC Message:", message.args); // prints the message arguments
-});
+socket.on('data', (message) => {
+    console.log("OSC Package received:")
+    // console.log("Raw Package:", message)
 
-osc.open();
+    var i=0;
+    while (i < message.length) {
+      var len = (message[i]<<24) + (message[i+1]<<16) + (message[i+2]<<8) + message[i+3];
+      i += 4;
+      // var buf = Buffer.allocUnsafe(len);
+      var buf = new Buffer(len);
+      message.copy(buf,0,i,i+len);
+      // console.log(" Raw Packet:", buf);
+      var oscMessage = oscmsg.decode(buf, { strict: true, strip: true, bundle: false });
+      console.log(" OSC Received:", oscMessage.address, '= "' + oscMessage.args.join('", "') + '"');
+      // console.log(" OSC Received:", oscMessage.address, '=', oscMessage.args);
+      i += len;
+    }
+
+})
+
+
+
+function sendOSC(msg) {
+    console.log("Sending OSC:", msg.address, "=", msg.args);
+    var oscMessage = oscmsg.encode(msg);
+    // console.log(" Raw Message:", oscMessage);
+    var len = oscMessage.length;
+    var buf = new Buffer(len+4);
+    buf[0] = (len>>24) & 255;
+    buf[1] = (len>>16) & 255;
+    buf[2] = (len>>8) & 255;
+    buf[3] = len & 255;
+    oscMessage.copy(buf,4);
+    // console.log(" Raw Packet:", buf);
+    socket.write(buf);
+}
+
+setTimeout(function() {
+    sendOSC({
+        address: "/eos/key/1",
+        args: 1
+//        args: [
+//          { type: "integer", value: 1 }
+//        ]
+    });
+}, 2000);
+
+setTimeout(function() {
+    sendOSC({
+        address: "/eos/key/1",
+        args: 0
+//        args: [
+//          { type: "integer", value: 0 }
+//        ]
+    });
+}, 2500);
