@@ -1,76 +1,174 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>OSC / WebSocket Test</title>
-        <meta charset="UTF-8" />
-        <script type="text/javascript">
+<head>
+ <title>OSC / WebSocket Test</title>
+ <meta charset="UTF-8">
+ <style>
+/*
+button {
+    min-width: 22px;
+    min-height: 22px;
+}
+*/
 
-// Create WebSocket connection.
-console.log('Creating WebSocket...');
-var socket = new WebSocket('ws://192.168.1.2:8081');
-//document.getElementById("socketStatusStatus").innerHTML = "Connecting...";
+/* when softkey buttons are empty (blank text returned from Eos) they shrink to be too small, but also the vertical alignment goes off (I guess because there's no text contect to align to the bottom of the (text) line..?) */
+/* so (one) solution is to put some non-breaking whitespace in before or after the content of the button, so that it's never empty */
+/* better yet, do it before *and* after, so that horizontal align doesn't go squiffy!.. */
+/* non-breaking space in css: https://stackoverflow.com/a/8595802 */
+#softkeys button:before, #softkeys button:after {
+    content: "\a0";
+}
+/* and then maybe reduce the left and right padding (default: 6px), to reduce the width of the buttons... */
+#softkeys button {
+    padding-left: 2px;
+    padding-right: 2px;
+}
 
-// Connection opened
-//socket.addEventListener('open', function (event) {
-socket.onopen = function (event) {
-    console.log('WebSocket open');
-    document.getElementById("socketStatusStatus").innerHTML = "Open";
-};
+.slider.horizontal {
+    width:100px;
+    height:10px;
+    background:#eee;
+    border: solid 1px black;
+    display: inline-block;
+}
 
-// Listen for messages
-//socket.addEventListener('message', function (event) {
-socket.onmessage = function (event) {
-    message = JSON.parse(event.data);
-    console.log('Message from server:', message);
-    document.getElementById("address").innerHTML = message.address;
-    document.getElementById("args").innerHTML = JSON.stringify(message.args);
-    
-    if ( oscElements[message.address] !== undefined ) {
-      oscElements[message.address].forEach( function (item, index, list) {
-        item.func(item.element, message.args);
-      });
+.slider.horizontal span {
+    width:50%;
+    height:100%;
+    background:#ff0;
+    border: solid 1px black;
+    display: block;
+    margin: -1px;
+}
+ </style>
+</head>
+
+<body onload="pageLoaded()">
+ <h1>OSC WebSocket Test</h1>
+
+ <div id="socketStatus">
+  <p id="socketStatusLabel">Socket Status: <span id="socketStatusStatus">???</span></p>
+ </div>
+
+ <div id="messageArea">
+  <p id="messageLabel">OSC Message:</p>
+  <pre id="address">???</pre>
+  <pre id="args">???</pre>
+ </div>
+
+ <div>
+  <p>Command Line: <span data-osc-update-html="/eos/out/cmd">???</span></p>
+  <p>Background Command Line: <span data-osc-update-html="/eos/out/user/0/cmd">???</span></p>
+  <p>Current Cue: <span data-osc-update-html="/eos/out/active/cue/text">???</span></p>
+  <p>Progress: <span class="slider horizontal"><span data-osc-update-width="/eos/out/active/cue"></span></span></p>
+  <p>Pending Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
+  <p>Next Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
+ </div>
+
+ <div>
+  <button data-osc-send="/eos/key/1" onclick="sendOSCclick(this)">1</button>
+  <button data-osc-send="/eos/key/2" onclick="sendOSCclick(this)">2</button>
+  <button data-osc-send="/eos/key/3" onclick="sendOSCclick(this)">3</button>
+  <button data-osc-send="/eos/key/4" onclick="sendOSCclick(this)">4</button>
+  <button data-osc-send="/eos/key/5" onclick="sendOSCclick(this)">5</button>
+  <button data-osc-send="/eos/key/6" onclick="sendOSCclick(this)">6</button>
+  <button data-osc-send="/eos/key/7" onclick="sendOSCclick(this)">7</button>
+  <button data-osc-send="/eos/key/8" onclick="sendOSCclick(this)">8</button>
+  <button data-osc-send="/eos/key/9" onclick="sendOSCclick(this)">9</button>
+  <button data-osc-send="/eos/key/0" onclick="sendOSCclick(this)">0</button>
+ </div>
+
+ <div id="softkeys">
+  <button data-osc-send="/eos/softkey/1" data-osc-update-html="/eos/out/softkey/1" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/2" data-osc-update-html="/eos/out/softkey/2" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/3" data-osc-update-html="/eos/out/softkey/3" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/4" data-osc-update-html="/eos/out/softkey/4" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/5" data-osc-update-html="/eos/out/softkey/5" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/6" data-osc-update-html="/eos/out/softkey/6" onclick="sendOSCclick(this)">???</button>
+  <br>
+  <button data-osc-send="/eos/softkey/7" data-osc-update-html="/eos/out/softkey/7" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/8" data-osc-update-html="/eos/out/softkey/8" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/9" data-osc-update-html="/eos/out/softkey/9" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/10" data-osc-update-html="/eos/out/softkey/10" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/11" data-osc-update-html="/eos/out/softkey/11" onclick="sendOSCclick(this)">???</button>
+  <button data-osc-send="/eos/softkey/12" data-osc-update-html="/eos/out/softkey/12" onclick="sendOSCclick(this)">???</button>
+ </div>
+
+
+ <script type="text/javascript">
+
+var osc = {};
+osc.socket = { readyState: -1 };
+osc.elements = {};
+osc.elements.socketStatusStatus = document.getElementById("socketStatusStatus");
+osc.elements.address = document.getElementById("address");
+osc.elements.args = document.getElementById("args");
+
+function pageLoaded() {
+    connectWebSocket();
+    scanOSCElements();
+}
+
+function connectWebSocket() {
+    // Create WebSocket connection.
+    console.log('Creating WebSocket...');
+    osc.elements.socketStatusStatus.innerHTML = "Connecting...";
+    osc.socket = new WebSocket('ws://192.168.1.2:8081');
+
+    // Connection opened
+    osc.socket.onopen = function (event) {
+      console.log('WebSocket open');
+      osc.elements.socketStatusStatus.innerHTML = "Open";
     }
-};
 
-// Connection closed
-socket.onclose = function (event) {
-    console.log('WebSocket closed');
-    document.getElementById("socketStatusStatus").innerHTML = "Closed";
-};
+    // Listen for messages
+    osc.socket.onmessage = function (event) {
+      message = JSON.parse(event.data);
+      console.log('Message from server:', message);
+      osc.elements.address.innerHTML = message.address;
+      osc.elements.args.innerHTML = JSON.stringify(message.args);
+      
+      if ( osc.addresses[message.address] !== undefined ) {
+        osc.addresses[message.address].forEach( function (item, index, list) {
+          item.func(item.element, message.args);
+        });
+      }
+    }
 
-// Connection error
-socket.onerror = function (event) {
-    console.log('WebSocket error', event);
-    document.getElementById("socketStatusStatus").innerHTML = "Error - Open?";
-};
+    // Connection closed
+    osc.socket.onclose = function (event) {
+      console.log('WebSocket closed');
+      osc.elements.socketStatusStatus.innerHTML = "Closed";
+    }
 
-//var sayHello = function () {
-//    port.send({
-//        address: "/hello",
-//        args: ["world"]
-//    });
-//};
+    // Connection error
+    osc.socket.onerror = function (event) {
+      console.log('WebSocket error', event);
+      osc.elements.socketStatusStatus.innerHTML = "Error";
+    }
+}
+
 
 function sendOSCpress(that) {
-    sendOSC( { address: that.dataset.oscAddress, args: 1 } );
-};
+    sendOSC( { address: that.dataset.oscSend, args: 1 } );
+}
 
 function sendOSCrelease(that) {
-    sendOSC( { address: that.dataset.oscAddress, args: 0 } );
-};
+    sendOSC( { address: that.dataset.oscSend, args: 0 } );
+}
 
 function sendOSCclick(that) {
-    sendOSC( { address: that.dataset.oscAddress } );
-};
+    sendOSC( { address: that.dataset.oscSend } );
+}
 
 function sendOSC(message) {
-    switch(socket.readyState) {
-      case WebSocket.CONNECTING:
-        console.log('WebSocket in CONNECTING state - unable to send OSC message (yet):', message);
-        break;
+    switch(osc.socket.readyState) {
       case WebSocket.OPEN:
         console.log('Sending OSC message:', message);
-        socket.send(JSON.stringify(message));
+        osc.socket.send(JSON.stringify(message));
+        break;
+      case WebSocket.CONNECTING:
+        console.log('WebSocket in CONNECTING state - unable to send OSC message (yet):', message);
         break;
       case WebSocket.CLOSING:
         console.log('WebSocket in CLOSING state - unable to send OSC message:', message);
@@ -78,61 +176,40 @@ function sendOSC(message) {
       case WebSocket.CLOSED:
         console.log('WebSocket in CLOSED state - unable to send OSC message:', message);
         break;
+      case -1:
+        console.log('WebSocket not yet initialised - unable to send OSC message:', message);
+        break;
       default:
         console.log('WebSocket in unknown state ('+socket.readyState+') - unable to send OSC message:', message);
     }
-};
+}
 
-        </script>
-    </head>
 
-    <body>
-        <h1>OSC WebSocket Test</h1>
 
-        <div id="socketStatus">
-            <p id="socketStatusLabel">Socket Status: <span id="socketStatusStatus">???</span></p>
-        </div>
-
-        <div id="messageArea">
-            <p id="messageLabel">OSC Message:</p>
-            <pre id="address">???</pre>
-            <pre id="args">???</pre>
-            <p>Command Line: <span data-osc-update-address="/eos/out/cmd" class="oscUpdate">???</span></p>
-            <p>Background Command Line: <span data-osc-update-address="/eos/out/user/0/cmd" class="oscUpdate">???</span></p>
-            <p>Current Cue: <span data-osc-update-address="/eos/out/active/cue/text" class="oscUpdate">???</span></p>
-            <p>Pending Cue: <span data-osc-update-address="/eos/out/pending/cue/text" class="oscUpdate">???</span></p>
-            <p>Next Cue: <span data-osc-update-address="/eos/out/pending/cue/text" class="oscUpdate">???</span></p>
-        </div>
-
-        <script type="text/javascript">
-
-var oscElements = {};
-
-function updateOSCElement(element, messageArgs) {
+function updateOSCElementHTML(element, messageArgs) {
     element.innerHTML = messageArgs[0];
 }
 
-function storeOSCElement(element, index, nodeList) {
-    if ( oscElements[element.dataset.oscUpdateAddress] === undefined) oscElements[element.dataset.oscUpdateAddress] = [];
-    oscElements[element.dataset.oscUpdateAddress].push({func: updateOSCElement, element: element});
+function updateOSCElementWidth(element, messageArgs) {
+    element.style.width = messageArgs[0]*100 + "%";
 }
 
-document.querySelectorAll(".oscUpdate").forEach(storeOSCElement);
+function scanOSCElements() {
+    console.log('Scanning page for OSC elements...');
+    osc.addresses = {};
+    // document.querySelectorAll(".oscUpdate").forEach(storeOSCElement);
+    document.querySelectorAll("[data-osc-update-html]").forEach(function (element, index, nodeList) {
+      if ( osc.addresses[element.dataset.oscUpdateHtml] === undefined) osc.addresses[element.dataset.oscUpdateHtml] = [];
+      osc.addresses[element.dataset.oscUpdateHtml].push({func: updateOSCElementHTML, element: element});
+    });
+    document.querySelectorAll("[data-osc-update-width]").forEach(function (element, index, nodeList) {
+      if ( osc.addresses[element.dataset.oscUpdateWidth] === undefined) osc.addresses[element.dataset.oscUpdateWidth] = [];
+      osc.addresses[element.dataset.oscUpdateWidth].push({func: updateOSCElementWidth, element: element});
+    });
+    console.log('Found elements interested in the following OSC addresses:', osc.addresses);
+}
 
-        </script>
+ </script>
 
-        <div>
-          <button data-osc-address="/eos/key/1" onclick="sendOSCclick(this)">1</button>
-          <button data-osc-address="/eos/key/2" onclick="sendOSCclick(this)">2</button>
-          <button data-osc-address="/eos/key/3" onclick="sendOSCclick(this)">3</button>
-          <button data-osc-address="/eos/key/4" onclick="sendOSCclick(this)">4</button>
-          <button data-osc-address="/eos/key/5" onclick="sendOSCclick(this)">5</button>
-          <button data-osc-address="/eos/key/6" onclick="sendOSCclick(this)">6</button>
-          <button data-osc-address="/eos/key/7" onclick="sendOSCclick(this)">7</button>
-          <button data-osc-address="/eos/key/8" onclick="sendOSCclick(this)">8</button>
-          <button data-osc-address="/eos/key/9" onclick="sendOSCclick(this)">9</button>
-          <button data-osc-address="/eos/key/0" onclick="sendOSCclick(this)">0</button>
-        </div>
-
-    </body>
+</body>
 </html>
