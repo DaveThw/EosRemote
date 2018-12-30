@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>OSC / WebSocket Test</title>
+        <meta charset="UTF-8" />
+        <script type="text/javascript">
+
+// Create WebSocket connection.
+console.log('Creating WebSocket...');
+var socket = new WebSocket('ws://192.168.1.2:8081');
+
+// Connection opened
+//socket.addEventListener('open', function (event) {
+socket.onopen = function (event) {
+    console.log('WebSocket open');
+};
+
+// Listen for messages
+//socket.addEventListener('message', function (event) {
+socket.onmessage = function (event) {
+    message = JSON.parse(event.data);
+    console.log('Message from server:', message);
+    document.getElementById("address").innerHTML = message.address;
+    document.getElementById("args").innerHTML = JSON.stringify(message.args);
+};
+
+// Connection closed
+socket.onclose = function (event) {
+    console.log('WebSocket closed');
+};
+
+// Connection error
+socket.onerror = function (event) {
+    console.log('WebSocket error', event);
+};
+
+//var sayHello = function () {
+//    port.send({
+//        address: "/hello",
+//        args: ["world"]
+//    });
+//};
+
+function sendOSCpress(that) {
+    sendOSC( { address: that.dataset.oscAddress, args: 1 } );
+};
+
+function sendOSCrelease(that) {
+    sendOSC( { address: that.dataset.oscAddress, args: 0 } );
+};
+
+function sendOSCclick(that) {
+    sendOSC( { address: that.dataset.oscAddress } );
+};
+
+function sendOSC(message) {
+    switch(socket.readyState) {
+      case WebSocket.CONNECTING:
+        console.log('WebSocket in CONNECTING state - unable to send OSC message (yet):', message);
+        break;
+      case WebSocket.OPEN:
+        console.log('Sending OSC message:', message);
+        socket.send(JSON.stringify(message));
+        break;
+      case WebSocket.CLOSING:
+        console.log('WebSocket in CLOSING state - unable to send OSC message:', message);
+        break;
+      case WebSocket.CLOSED:
+        console.log('WebSocket in CLOSED state - unable to send OSC message:', message);
+        break;
+      default:
+        console.log('WebSocket in unknown state ('+socket.readyState+') - unable to send OSC message:', message);
+    }
+};
+
+        </script>
+    </head>
+
+    <body>
+        <h1>OSC WebSocket Test</h1>
+
+        <div id="messageArea">
+            <p id="messageLabel">OSC Message:</p>
+            <pre id="address"></pre>
+            <pre id="args"></pre>
+        </div>
+
+        <button data-osc-address="/eos/key/1" onclick="sendOSCclick(this)">1</button>
+        <button data-osc-address="/eos/key/2" onclick="sendOSCclick(this)">2</button>
+        <button data-osc-address="/eos/key/3" onclick="sendOSCclick(this)">3</button>
+        <button data-osc-address="/eos/key/4" onclick="sendOSCclick(this)">4</button>
+        <button data-osc-address="/eos/key/5" onclick="sendOSCclick(this)">5</button>
+        <button data-osc-address="/eos/key/6" onclick="sendOSCclick(this)">6</button>
+        <button data-osc-address="/eos/key/7" onclick="sendOSCclick(this)">7</button>
+        <button data-osc-address="/eos/key/8" onclick="sendOSCclick(this)">8</button>
+        <button data-osc-address="/eos/key/9" onclick="sendOSCclick(this)">9</button>
+        <button data-osc-address="/eos/key/0" onclick="sendOSCclick(this)">0</button>
+    </body>
+</html>

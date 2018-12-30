@@ -1,5 +1,6 @@
 const oscmsg = require("osc-msg");
 const net = require('net');
+const websocket = require('ws');
 
 
 /****************
@@ -15,22 +16,22 @@ const net = require('net');
 var socket = net.createConnection( { host: '10.101.100.101', port: 3036 }, () => {
   // connection was established
 
-    console.log("Connected to remote OSC Server, via TCP:");
+    console.log("TCP Connected to remote OSC Server:");
     console.log(" Remote Address:", socket.remoteAddress + ", Port:", socket.remotePort);
 });
 
 socket.on('close', () => {
   // connection was closed
-    console.log("OSC/TCP socket closed");
+    console.log("TCP socket closed");
 });
 
 socket.on('error', (err) => {
   // an error occurred
-    console.log("OSC/TCP socket error:", err);
+    console.log("TCP socket error:", err);
 });
 
 socket.on('data', (message) => {
-    console.log("OSC Package received:")
+    console.log("TCP: OSC Package received:")
     // console.log("Raw Package:", message)
 
     var i=0;
@@ -44,6 +45,9 @@ socket.on('data', (message) => {
       var oscMessage = oscmsg.decode(buf, { strict: true, strip: true, bundle: false });
       console.log(" OSC Received:", oscMessage.address, '= "' + oscMessage.args.join('", "') + '"');
       // console.log(" OSC Received:", oscMessage.address, '=', oscMessage.args);
+      if ( webs ) {
+        webs.send(JSON.stringify(oscMessage));
+      }
       i += len;
     }
 
@@ -52,7 +56,7 @@ socket.on('data', (message) => {
 
 
 function sendOSC(msg) {
-    console.log("Sending OSC:", msg.address, "=", msg.args);
+    console.log("TCP: Sending OSC:", msg.address, "=", msg.args);
     var oscMessage = oscmsg.encode(msg);
     // console.log(" Raw Message:", oscMessage);
     var len = oscMessage.length;
@@ -66,22 +70,69 @@ function sendOSC(msg) {
     socket.write(buf);
 }
 
-setTimeout(function() {
-    sendOSC({
-        address: "/eos/key/1",
-        args: 1
-//        args: [
-//          { type: "integer", value: 1 }
-//        ]
-    });
-}, 2000);
+//setTimeout(function() {
+//    sendOSC({
+//        address: "/eos/key/1",
+//        args: 1
+////        args: [
+////          { type: "integer", value: 1 }
+////        ]
+//    });
+//}, 2000);
 
-setTimeout(function() {
-    sendOSC({
-        address: "/eos/key/1",
-        args: 0
-//        args: [
-//          { type: "integer", value: 0 }
-//        ]
+//setTimeout(function() {
+//    sendOSC({
+//        address: "/eos/key/1",
+//        args: 0
+////        args: [
+////          { type: "integer", value: 0 }
+////        ]
+//    });
+//}, 2500);
+
+
+
+
+var wss = new websocket.Server({
+    // host: "10.101.1.2",
+    host: "192.168.1.2",
+    port: 8081,
+}, function () {
+    let { port, family, address } = wss.address();
+    console.log("WebSocket Server is listening for connections:", address + ":" + port);
+});
+
+wss.on('close', () => {
+  // connection was closed
+    console.log("WebSocket Server closed");
+});
+
+wss.on('error', (err) => {
+  // an error occurred
+    console.log("WebSocket Server error:", err);
+});
+
+var webs = null;
+
+wss.on('connection', function (ws, req) {
+    console.log("A WebSocket connection has been established: client:", req.connection.remoteAddress);
+    // see: https://stackoverflow.com/questions/14822708/how-to-get-client-ip-address-with-websocket-websockets-ws-library-in-node-js
+
+    ws.on('close', () => {
+      // connection was closed
+      console.log("WebSocket closed");
+      webs = null;
     });
-}, 2500);
+
+    ws.on('error', (err) => {
+      // an error occurred
+      console.log("WebSocket error:", err);
+    });
+
+    ws.on('message', function incoming(message) {
+      console.log('WebSocket: message received:', message);
+      sendOSC(JSON.parse(message));
+    });
+
+    webs = ws;
+});
