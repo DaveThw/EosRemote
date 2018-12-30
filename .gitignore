@@ -2,3 +2,4 @@ node-red/.flows.json.backup
 ssl/CA
 ssl/server-csr.pem
 ssl/test-*
+node_modules

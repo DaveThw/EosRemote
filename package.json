@@ -1,0 +1,14 @@
+{
+  "name": "eosremote",
+  "version": "2.0.0",
+  "description": "Web App Remote for ETC Eos/Ion lighting desks",
+  "main": "eosremote.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dave Thwaites",
+  "license": "MIT",
+  "dependencies": {
+    "osc": "^2.2.4"
+  }
+}
