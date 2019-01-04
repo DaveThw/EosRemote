@@ -47,7 +47,11 @@ button {
  <h1>OSC WebSocket Test</h1>
 
  <div id="socketStatus">
-  <p id="socketStatusLabel">Socket Status: <span id="socketStatusStatus">???</span></p>
+  <p>
+    <span id="socketStatusLabel">Socket Status:</span>
+    <span id="socketStatusStatus">???</span>
+    <button onclick="connectWebSocket()">Re-connect WebSocket</button>
+  </p>
  </div>
 
  <div id="messageArea">
@@ -63,6 +67,7 @@ button {
   <p>Progress: <span class="slider horizontal"><span data-osc-update-width="/eos/out/active/cue"></span></span></p>
   <p>Pending Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
   <p>Next Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
+  <p>User: <span data-osc-update-html="/eos/out/user">???</span></p>
  </div>
 
  <div>
@@ -94,6 +99,12 @@ button {
   <button data-osc-send="/eos/softkey/12" data-osc-update-html="/eos/out/softkey/12" onclick="sendOSCclick(this)">???</button>
  </div>
 
+ <div>
+  <button onclick="sendOSCclick2('/eos/user', 0)">User 0</button>
+  <button onclick="sendOSCclick2('/eos/user', 1)">User 1</button>
+  <button data-osc-send="/eos/user" onclick="sendOSCclick(this, 2)">User 2</button>
+ </div>
+
 
  <script type="text/javascript">
 
@@ -112,6 +123,10 @@ function pageLoaded() {
 function connectWebSocket() {
     // Create WebSocket connection.
     console.log('Creating WebSocket...');
+    if (osc.socket.readyState == WebSocket.OPEN || osc.socket.readyState == WebSocket.CONNECTING) {
+      console.log('Closing old WebSocket...');
+      osc.socket.close();
+    }
     osc.elements.socketStatusStatus.innerHTML = "Connecting...";
     osc.socket = new WebSocket('ws://192.168.1.2:8081');
 
@@ -137,8 +152,8 @@ function connectWebSocket() {
 
     // Connection closed
     osc.socket.onclose = function (event) {
-      console.log('WebSocket closed');
-      osc.elements.socketStatusStatus.innerHTML = "Closed";
+      console.log('WebSocket closed (was: '+osc.elements.socketStatusStatus.innerHTML+')');
+      osc.elements.socketStatusStatus.innerHTML = "Closed ("+osc.elements.socketStatusStatus.innerHTML+")";
     }
 
     // Connection error
@@ -157,8 +172,20 @@ function sendOSCrelease(that) {
     sendOSC( { address: that.dataset.oscSend, args: 0 } );
 }
 
-function sendOSCclick(that) {
-    sendOSC( { address: that.dataset.oscSend } );
+function sendOSCclick(that, args) {
+    if ( args === undefined) {
+      sendOSC( { address: that.dataset.oscSend } );
+    } else {
+      sendOSC( { address: that.dataset.oscSend, args: args } );
+    }
+}
+
+function sendOSCclick2(addr, args) {
+    if ( args === undefined) {
+      sendOSC( { address: addr } );
+    } else {
+      sendOSC( { address: addr, args: args } );
+    }
 }
 
 function sendOSC(message) {
