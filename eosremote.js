@@ -75,12 +75,49 @@ function sendOSC(soc, msg) {
 ['osc', 'open', <name>, 'udp', <osc version>, <local port>, <remote ip address>, <remote port>]
     set up new UDP OSC connection to <ip address>, and name it 'name' for ease
     of reference in later messages...
+['osc', 'send', <name>, <osc object>] => send osc packet to <name>
 ['osc', 'close', <name>] => close the named connection
 Creating an OSC connection adds further options to the <message type> list:
-['ion', <binary coded osc>] => send osc packet to Ion
-['qlab', <binary coded osc>] => send osc packet to QLab
+['ion', <osc object>] => send osc packet to Ion
+    (shorthand for ['osc', 'send', 'ion', <osc object>] )
+['qlab', <osc object>] => send osc packet to QLab
 
 \* **************************** */
+
+
+/*  Internal objects...  *\
+
+handlers = {
+  id: function (args...),
+  tick: function (args...),
+  osc: function (args...),
+  ...
+}
+
+
+clients = [ 0=>{
+  websocket: <websocket>,
+  id: <id>, -> ids[<id>]
+  handlers: -> use clients[0].handlers = Object.create(handlers)
+}, ... ]
+
+
+ids = [ 0=>{
+  clients: [<index>],
+  timeout: null | Timeout object, from setTimeout, to close connections after websocket is closed
+  osc: {
+    eos: {
+      transport: <tcp|udp>,
+      version: <1.0|1.1>,
+      ip: <ip address>,
+      port: <port>,
+      socket: <socket>
+    }, ...
+  }, ...
+}, ... ]
+
+\* ********************* */
+
 
 /*
 var WSmsg = {
@@ -149,7 +186,6 @@ wss.on('error', (err) => {
 // var webs = null;
 var ws_id = 0;
 var ws_list = [];
-const dead_ws = { readyState: -1 };
 
 wss.on('connection', function (ws, req) {
     console.log("WebSocket Server: new connection:");
@@ -164,7 +200,7 @@ wss.on('connection', function (ws, req) {
       console.log("WebSocket ("+ws.id+"): closed");
       console.log(" Ending TCP socket...");
       ws.socket.end();
-      ws_list[ws.id] = dead_ws;
+      delete ws_list[ws.id];
     });
 
     ws.on('error', (err) => {
