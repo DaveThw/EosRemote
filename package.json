@@ -1,6 +1,6 @@
 {
   "name": "eosremote",
-  "version": "2.0.05",
+  "version": "2.0.06",
   "description": "Web App Remote for ETC Eos/Ion lighting desks",
   "main": "eosremote.js",
   "scripts": {

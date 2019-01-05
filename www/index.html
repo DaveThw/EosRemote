@@ -110,6 +110,7 @@ button {
 
 var osc = {};
 osc.socket = { readyState: -1 };
+osc.id = undefined;
 osc.elements = {};
 osc.elements.socketStatusStatus = document.getElementById("socketStatusStatus");
 osc.elements.address = document.getElementById("address");
@@ -134,19 +135,34 @@ function connectWebSocket() {
     osc.socket.onopen = function (event) {
       console.log('WebSocket open');
       osc.elements.socketStatusStatus.innerHTML = "Open";
+      if ( osc.id === undefined ) {
+        osc.socket.send(JSON.stringify(['id']));
+        osc.socket.send(JSON.stringify(['osc', 'open', 'eos', 'tcp', '1.0', '10.101.100.101', 3036]));
+      } else {
+        osc.socket.send(JSON.stringify(['id', osc.id]));
+      }
     }
 
     // Listen for messages
     osc.socket.onmessage = function (event) {
-      message = JSON.parse(event.data);
+      message = JSON.parse(event.data)[0];
       console.log('Message from server:', message);
-      osc.elements.address.innerHTML = message.address;
-      osc.elements.args.innerHTML = JSON.stringify(message.args);
-      
-      if ( osc.addresses[message.address] !== undefined ) {
-        osc.addresses[message.address].forEach( function (item, index, list) {
-          item.func(item.element, message.args);
-        });
+      console.log('message[0]:', message[0]);
+      switch (message[0]) {
+        case 'osc':
+          console.log('message[3]:', message[3]);
+          osc.elements.address.innerHTML = message[3].address;
+          osc.elements.args.innerHTML = JSON.stringify(message[3].args);
+          
+          if ( osc.addresses[message[3].address] !== undefined ) {
+            osc.addresses[message[3].address].forEach( function (item, index, list) {
+              item.func(item.element, message[3].args);
+            });
+          }
+          break;
+        case 'id':
+          osc.id = message[1];
+          break;
       }
     }
 
@@ -192,7 +208,7 @@ function sendOSC(message) {
     switch(osc.socket.readyState) {
       case WebSocket.OPEN:
         console.log('Sending OSC message:', message);
-        osc.socket.send(JSON.stringify(message));
+        osc.socket.send(JSON.stringify(['osc', 'send', 'eos', message]));
         break;
       case WebSocket.CONNECTING:
         console.log('WebSocket in CONNECTING state - unable to send OSC message (yet):', message);

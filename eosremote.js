@@ -87,23 +87,25 @@ Creating an OSC connection adds further options to the <message type> list:
 
 /*  Internal objects...  *\
 
-handlers = {
-  id: function (args...),
-  tick: function (args...),
-  osc: function (args...),
+Handlers = {
+  id: function (client, args...),
+  tick: function (client, args...),
+  osc: function (client, args...),
   ...
 }
 
 
-clients = [ 0=>{
+Client = {
   websocket: <websocket>,
-  id: <id>, -> ids[<id>]
-  handlers: -> use clients[0].handlers = Object.create(handlers)
-}, ... ]
+  id: <id-number>,
+  handlers: -> use client.handlers = Object.create(Handlers)
+}
+
+clients = [ 0 => new Client(), ... ]
 
 
-ids = [ 0=>{
-  clients: [<index>],
+Id = {
+  clients: [<client>, ...],
   timeout: null | Timeout object, from setTimeout, to close connections after websocket is closed
   osc: {
     eos: {
@@ -114,53 +116,179 @@ ids = [ 0=>{
       socket: <socket>
     }, ...
   }, ...
-}, ... ]
+}
+
+ids = [ 0 => new Id(), ... ]
 
 \* ********************* */
 
 
-/*
-var WSmsg = {
-    osc: function(client, action, name) {
-        switch(action) {
-            case 'open':
-                break;
-            case 'close':
-                break;
-        }
+// Main 'Handler' functions for messages received over the WebSocket:
+
+var Handlers = {};
+
+Handlers.id = function(client, args) {
+    if (args === undefined) args = [];
+    var previous_id = args[1];
+    console.log("Id Message:");
+    // check if previous_id is still a valid id (it may have timed-out)
+    // - if not, treat it as 'undefined'...
+    if ( previous_id !== undefined && ids[previous_id] === undefined ) {
+      console.log(" Previous Id (no longer valid):", previous_id);
+      previous_id = undefined;
+    }
+    if ( previous_id === undefined ) {
+      console.log(" No Previous Id given");
+      if (client.id === undefined) {
+        console.log(" Client has no current Id - creating a new one");
+        client.id = ids.length;
+        ids.push(new Id(client.id, client));
+        console.log(" Client Id:", client.id);
+        // return new id number to WebSocket client...
+        client.send([ 'id', client.id ]);
+      } else {
+        console.log(" Client has a current Id:", client.id);
+        // return id number to WebSocket client...
+      }
+    } else {
+      console.log(" Previous Id:", previous_id);
+      if (client.id === undefined) {
+        console.log(" Client has no current Id");
+        client.id = previous_id;
+        // return id number to WebSocket client...
+      } else {
+        console.log(" Client has a current Id:", client.id);
+        // check if ids match
+        // - if they are the same, then all good!
+        // - if they aren't the same... then... leave the curreent id as it is..?
+        // return id number to WebSocket client...
+      }
     }
 };
-*/
 
-/*
-class Client {
-    handlers;
-    id;
-    constructor() {
-        this.handlers = {};
-        this.handlers.osc = function(that, args) {
-            switch(args[0]) {
-                case 'id':
-                    that.id = id;
-                    break;
-                case 'open':
-                    // args[0] = 'open'
-                    // args[1] = 'osc' / 'wol' / 'ping' / ...
-                    // osc: args[2] = name for osc connection
-                    // osc: args[3] = 'tcp' / 'udp'
-                    // osc: args[4] = osc version: '1.0' / '1.1'
-                    // osc: args[5] = ip address
-                    // osc: args[6] = port
-                    // wol: args[2] = mac address
-                    // wol: args[3] = number of times to repeat magic packet
-                    // wol: args[4] = delay between magic packets
-                    // ping: args[2] = ip address
-                    // ping: args[3] = delay between pings?
-                    break;
+Handlers.osc = function(client, args) {
+    if (args === undefined) args = [];
+    var action = args[1];
+    var name = args[2];
+    var connection;
+    console.log("OSC Message:");
+    console.log(" Action:", action);
+    console.log(" Name:", name);
+
+    if ( client.id === undefined ) {
+      console.log(" Client has no current Id - creating a new one");
+      client.id = ids.length;
+      ids.push(new Id(client.id, client));
+      console.log(" Client Id:", client.id);
+      // send new id number to WebSocket client...
+      client.send([ 'id', client.id ]);
+    }
+    if ( ids[client.id].osc === undefined ) ids[client.id].osc = {};
+
+    switch(action) {
+      case 'open':
+        if ( ids[client.id].osc[name] === undefined ) ids[client.id].osc[name] = {};
+        else console.log(" OSC socket already exists...");
+        connection = ids[client.id].osc[name];
+
+        connection.transport = args[3];
+        connection.osc_ver = args[4];
+        connection.address = args[5];
+        connection.port = args[6];
+
+        // Ion: { host: '10.101.100.101', port: 3036 }
+        connection.socket = net.createConnection( { host: connection.address, port: connection.port }, () => {
+          // connection has been established
+          console.log("TCP socket (WS:"+client.number+"): Connected to remote server:");
+          console.log(" Remote Address:", connection.socket.remoteAddress + ", Port:", connection.socket.remotePort);
+          console.log(" Local Address:", connection.socket.localAddress + ", Port:", connection.socket.localPort);
+        });
+        console.log(" Creating TCP socket...");
+
+        connection.socket.on('close', () => {
+          // connection has been closed
+          console.log("TCP socket (WS:"+client.number+"): closed");
+        });
+    
+        connection.socket.on('error', (err) => {
+          // an error occurred
+          console.log("TCP socket (WS:"+client.number+"): error:", err.message);
+        });
+    
+        connection.socket.on('data', (message) => {
+          console.log("TCP (WS:"+client.number+"): data package received:");
+          // console.log("Raw Package:", message)
+
+          var i=0;
+          while (i < message.length) {
+            var len = (message[i]<<24) + (message[i+1]<<16) + (message[i+2]<<8) + message[i+3];
+            i += 4;
+            // var buf = Buffer.allocUnsafe(len);
+            var buf = new Buffer(len);
+            message.copy(buf,0,i,i+len);
+            // console.log(" Raw Packet:", buf);
+            var oscMessage = oscmsg.decode(buf, { strict: true, strip: true, bundle: false });
+            // console.log(" OSC Received:", oscMessage.address, '= "' + oscMessage.args.join('", "') + '"');
+            // console.log(" OSC Received:", oscMessage.address, '=', JSON.stringify(oscMessage.args));
+            // console.log(" OSC Received:", oscMessage.address, '=', oscMessage.args);
+            client.send([ 'osc', 'receive', name, oscMessage ]);
+            i += len;
+          }
+        });
+        break;
+      case 'send':
+        if ( ids[client.id].osc[name] === undefined ) {
+          console.log(" OSC socket doesn't exist...");
+          break;
         }
-    };
+        connection = ids[client.id].osc[name];
+
+        if (connection.socket.writable) {
+          sendOSC(connection.socket, args[3]);
+        } else {
+          console.log(" TCP socket (WS:"+client.number+"): not writable at the moment...");
+        }
+        break;
+      case 'close':
+        if ( ids[client.id].osc[name] === undefined ) {
+          console.log(" OSC socket doesn't exist...");
+          break;
+        }
+        connection = ids[client.id].osc[name];
+        
+        console.log(" Closing OSC socket...");
+        connection.socket.end();
+        break;
+    }
+};
+
+
+
+function Client(number, ws) {
+  this.number = number;
+  this.websocket = ws;
+  this.id = undefined;
+  this.handlers = Object.create(Handlers);
+  this.send = function() {
+    this.websocket.send(JSON.stringify(arguments));
+  };
 }
-*/
+
+clients = [];
+
+
+
+function Id(id, client) {
+  this.id = id;
+  this.clients = [];
+  if ( client !== undefined ) {
+    this.clients.push(client);
+  }
+  this.timeout = null;
+}
+
+ids = [];
+
 
 
 
@@ -183,79 +311,40 @@ wss.on('error', (err) => {
     console.log("WebSocket Server: error:", err);
 });
 
-// var webs = null;
-var ws_id = 0;
-var ws_list = [];
-
 wss.on('connection', function (ws, req) {
     console.log("WebSocket Server: new connection:");
     console.log(" Client:", req.connection.remoteAddress);
     // see: https://stackoverflow.com/questions/14822708/how-to-get-client-ip-address-with-websocket-websockets-ws-library-in-node-js
-    ws.id = ++ws_id;
-    ws_list[ws.id] = ws;
-    console.log(" Id:", ws.id);
+    var client = new Client(clients.length, ws);
+    clients.push(client);
+    console.log(" WS number:", client.number);
 
     ws.on('close', () => {
       // connection was closed
-      console.log("WebSocket ("+ws.id+"): closed");
-      console.log(" Ending TCP socket...");
-      ws.socket.end();
-      delete ws_list[ws.id];
+      console.log("WebSocket ("+client.number+"): closed");
+      // console.log(" Ending TCP socket...");
+      // ws.socket.end();
+      delete clients[client.number];
     });
 
     ws.on('error', (err) => {
       // an error occurred
-      console.log("WebSocket ("+ws.id+"): error:", err);
+      console.log("WebSocket ("+client.number+"): error:", err);
     });
 
     ws.on('message', function incoming(message) {
-      console.log("WebSocket ("+ws.id+"): message received:", message);
-      if (ws.socket.writable) {
-        sendOSC(ws.socket, JSON.parse(message));
-      } else {
-        console.log(" TCP socket (WS:"+ws.id+"): not writable at the moment...");
+      console.log("WebSocket ("+client.number+"): message received:", message);
+      message = JSON.parse(message);
+      if ( client.handlers[message[0]] !== undefined) {
+        client.handlers[message[0]](client, message);
       }
+      
+      //if (ws.socket.writable) {
+      //  sendOSC(ws.socket, JSON.parse(message));
+      //} else {
+      //  console.log(" TCP socket (WS:"+client.number+"): not writable at the moment...");
+      //}
     });
-
-    ws.socket = net.createConnection( { host: '10.101.100.101', port: 3036 }, () => {
-        // connection was established
-        console.log("TCP socket (WS:"+ws.id+"): Connected to remote server:");
-        console.log(" Remote Address:", ws.socket.remoteAddress + ", Port:", ws.socket.remotePort);
-        console.log(" Local Address:", ws.socket.localAddress + ", Port:", ws.socket.localPort);
-    });
-    console.log(" Creating TCP socket...");
-
-    ws.socket.on('close', () => {
-        // connection was closed
-        console.log("TCP socket (WS:"+ws.id+"): closed");
-    });
-    
-    ws.socket.on('error', (err) => {
-        // an error occurred
-        console.log("TCP socket (WS:"+ws.id+"): error:", err.message);
-    });
-    
-    ws.socket.on('data', (message) => {
-        console.log("TCP (WS:"+ws.id+"): data package received:");
-        // console.log("Raw Package:", message)
-    
-        var i=0;
-        while (i < message.length) {
-          var len = (message[i]<<24) + (message[i+1]<<16) + (message[i+2]<<8) + message[i+3];
-          i += 4;
-          // var buf = Buffer.allocUnsafe(len);
-          var buf = new Buffer(len);
-          message.copy(buf,0,i,i+len);
-          // console.log(" Raw Packet:", buf);
-          var oscMessage = oscmsg.decode(buf, { strict: true, strip: true, bundle: false });
-          // console.log(" OSC Received:", oscMessage.address, '= "' + oscMessage.args.join('", "') + '"');
-          // console.log(" OSC Received:", oscMessage.address, '=', JSON.stringify(oscMessage.args));
-          // console.log(" OSC Received:", oscMessage.address, '=', oscMessage.args);
-          ws.send(JSON.stringify(oscMessage));
-          i += len;
-        }
-    });
-
 
 });
 
@@ -264,28 +353,26 @@ process.on('SIGINT', function() {
     // let's shut everything down!
     console.log();
     console.log("SIGINT Received - Shutting down...");
-    console.log("Total count of WebSockets connected:", ws_id);
-    console.log("Checking WebSockets...");
-    ws_list.forEach(function(ws, index){
-      switch (ws.readyState) {
+    console.log("Total count of WebSocket Clients connected:", clients.length);
+    console.log("Checking Clients list...");
+    clients.forEach(function(client, index){
+      switch (client.websocket.readyState) {
         case websocket.CONNECTING:
-          console.log(" WebSocket "+ws.id+": Connecting");
+          console.log(" WebSocket "+client.number+": Connecting");
           break;
         case websocket.OPEN:
-          console.log(" WebSocket "+ws.id+": Open");
+          console.log(" WebSocket "+client.number+": Open");
           break;
         case websocket.CLOSING:
-          console.log(" WebSocket "+ws.id+": Closing");
+          console.log(" WebSocket "+client.number+": Closing");
           break;
         case websocket.CLOSED:
-          console.log(" WebSocket "+ws.id+": Closed");
-          break;
-        case -1:
-          console.log(" WebSocket "+index+": Dead");
+          console.log(" WebSocket "+client.number+": Closed");
           break;
         default:
-          console.log(" WebSocket "+ws.id+": Unknown state ("+ws.readyState+")");
+          console.log(" WebSocket "+client.number+": Unknown state ("+client.websocket.readyState+")");
       }
+/*
       if (ws.socket !== undefined) {
         if (ws.socket.pending) {
           console.log("  TCP Socket: Pending");
@@ -306,9 +393,10 @@ process.on('SIGINT', function() {
           console.log("   Remote Address:", ws.socket.remoteAddress + ":" + ws.socket.remotePort);
         }
       }
-      if (ws.readyState == websocket.CONNECTING || ws.readyState == websocket.OPEN) {
+*/
+      if (client.websocket.readyState == websocket.CONNECTING || client.websocket.readyState == websocket.OPEN) {
         console.log("  Closing WebSocket...");
-        ws.close();
+        client.websocket.close();
       }
     });
     console.log("Closing WebSocket Server...");
