@@ -174,26 +174,29 @@ wss.on('connection', function (ws, req) {
 
     ws.on('message', function incoming(message) {
       console.log("WebSocket ("+ws.id+"): message received:", message);
-      sendOSC(ws.socket, JSON.parse(message));
+      if (ws.socket.writable) {
+        sendOSC(ws.socket, JSON.parse(message));
+      } else {
+        console.log(" TCP socket (WS:"+ws.id+"): not writable at the moment...");
+      }
     });
 
-
     ws.socket = net.createConnection( { host: '10.101.100.101', port: 3036 }, () => {
-      // connection was established
-    
+        // connection was established
         console.log("TCP socket (WS:"+ws.id+"): Connected to remote server:");
         console.log(" Remote Address:", ws.socket.remoteAddress + ", Port:", ws.socket.remotePort);
         console.log(" Local Address:", ws.socket.localAddress + ", Port:", ws.socket.localPort);
     });
+    console.log(" Creating TCP socket...");
 
     ws.socket.on('close', () => {
-      // connection was closed
+        // connection was closed
         console.log("TCP socket (WS:"+ws.id+"): closed");
     });
     
     ws.socket.on('error', (err) => {
-      // an error occurred
-        console.log("TCP socket (WS:"+ws.id+"): error:", err);
+        // an error occurred
+        console.log("TCP socket (WS:"+ws.id+"): error:", err.message);
     });
     
     ws.socket.on('data', (message) => {
@@ -215,7 +218,6 @@ wss.on('connection', function (ws, req) {
           ws.send(JSON.stringify(oscMessage));
           i += len;
         }
-    
     });
 
 
