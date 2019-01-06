@@ -279,12 +279,28 @@ Client.prototype.send = function() {
     }
 };
 Client.prototype.websocket_status = function() {
-    if ( WS.states[this.websocket.readyState] !== undefined ) {
-      return WS.states[this.websocket.readyState];
+    if ( this.websocket ) {
+      if ( WS.states[this.websocket.readyState] ) {
+        return WS.states[this.websocket.readyState];
+      } else {
+        return "Unknown state (" + WS.states[this.websocket.readyState] + ")";
+      }
     } else {
-      return "Unknown state (" + WS.states[this.websocket.readyState] + ")";
+      return "No WebSocket defined!";
     }
 };
+Client.prototype.remove = function() {
+    console.log("Removing Client:", this.number);
+    if ( this.id ) {
+      console.log(" Id:", this.id);
+      // Id.list[this.id].remove_client(this);
+    };
+    if (this.websocket.readyState == WS.CONNECTING || this.websocket.readyState == WS.OPEN) {
+      console.log(" Closing WebSocket...");
+      this.websocket.close();
+    }
+    delete Client.list[this.number];
+}
 
 
 
@@ -334,7 +350,7 @@ wss.on('connection', function (ws, req) {
       console.log("WebSocket ("+client.number+"): closed");
       // console.log(" Ending TCP socket...");
       // ws.socket.end();
-      delete Client.list[client.number];
+      client.remove();
     });
 
     ws.on('error', (err) => {
@@ -366,7 +382,8 @@ process.on('SIGINT', function() {
     console.log("Total count of WebSocket Clients connected:", Client.list.length);
     console.log("Checking Clients list...");
     Client.list.forEach(function(client, index){
-      console.log(" WebSocket "+client.number+":", client.websocket_status());
+      console.log(" Client "+client.number+" exists");
+      console.log("  WebSocket:", client.websocket_status());
 /*
       if (ws.socket !== undefined) {
         if (ws.socket.pending) {
@@ -389,10 +406,7 @@ process.on('SIGINT', function() {
         }
       }
 */
-      if (client.websocket.readyState == WS.CONNECTING || client.websocket.readyState == WS.OPEN) {
-        console.log("  Closing WebSocket...");
-        client.websocket.close();
-      }
+      client.remove();
     });
     console.log("Closing WebSocket Server...");
     wss.close(function() {
