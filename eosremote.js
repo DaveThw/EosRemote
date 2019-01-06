@@ -2,13 +2,6 @@ const oscmsg = require("osc-msg");
 const net = require('net');
 const WS = require('ws');
 WS.states = ["Connecting", "Open", "Closing", "Closed"];
-WS.state_to_text = function(state) {
-  if ( WS.states[state] !== undefined ) {
-    return WS.states[state];
-  } else {
-    return "Unknown state (" + WS.states[state] + ")";
-  }
-};
 
 /****************
  * OSC Over TCP *
@@ -272,32 +265,38 @@ Handlers.osc = function(client, args) {
 
 
 function Client(number, ws) {
-  this.number = number;
-  this.websocket = ws;
-  this.websocket_status = function() { return WS.state_to_text(this.websocket.readyState) };
-  this.id = undefined;
-  this.handlers = Object.create(Handlers);
-  this.send = function() {
+    this.number = number;
+    this.websocket = ws;
+    this.id = undefined;
+    this.handlers = Object.create(Handlers);
+}
+Client.prototype.send = function() {
     if (this.websocket.readyState == WS.OPEN) {
       // console.log("Sending message - WebSocket "+this.number);
       this.websocket.send(JSON.stringify(arguments));
     } else {
       console.log("Unable to send message - WebSocket "+this.number+":", this.websocket_status());
     }
-  };
-}
+};
+Client.prototype.websocket_status = function() {
+    if ( WS.states[this.websocket.readyState] !== undefined ) {
+      return WS.states[this.websocket.readyState];
+    } else {
+      return "Unknown state (" + WS.states[this.websocket.readyState] + ")";
+    }
+};
 
 clients = [];
 
 
 
 function Id(id, client) {
-  this.id = id;
-  this.clients = [];
-  if ( client !== undefined ) {
-    this.clients.push(client);
-  }
-  this.timeout = null;
+    this.id = id;
+    this.clients = [];
+    if ( client !== undefined ) {
+      this.clients.push(client);
+    }
+    this.timeout = null;
 }
 
 ids = [];
