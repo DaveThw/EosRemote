@@ -133,7 +133,7 @@ Handlers.id = function(client, args) {
     console.log("Id Message:");
     // check if previous_id is still a valid id (it may have timed-out)
     // - if not, treat it as 'undefined'...
-    if ( previous_id !== undefined && ids[previous_id] === undefined ) {
+    if ( previous_id !== undefined && Id.list[previous_id] === undefined ) {
       console.log(" Previous Id (no longer valid):", previous_id);
       previous_id = undefined;
     }
@@ -141,8 +141,7 @@ Handlers.id = function(client, args) {
       console.log(" No Previous Id given");
       if (client.id === undefined) {
         console.log(" Client has no current Id - creating a new one");
-        client.id = ids.length;
-        ids.push(new Id(client.id, client));
+        new Id(client);
         console.log(" Client Id:", client.id);
         // return new id number to WebSocket client...
         client.send([ 'id', client.id ]);
@@ -177,19 +176,18 @@ Handlers.osc = function(client, args) {
 
     if ( client.id === undefined ) {
       console.log(" Client has no current Id - creating a new one");
-      client.id = ids.length;
-      ids.push(new Id(client.id, client));
+      new Id(client);
       console.log(" Client Id:", client.id);
       // send new id number to WebSocket client...
       client.send([ 'id', client.id ]);
     }
-    if ( ids[client.id].osc === undefined ) ids[client.id].osc = {};
+    if ( Id.list[client.id].osc === undefined ) Id.list[client.id].osc = {};
 
     switch(action) {
       case 'open':
-        if ( ids[client.id].osc[name] === undefined ) ids[client.id].osc[name] = {};
+        if ( Id.list[client.id].osc[name] === undefined ) Id.list[client.id].osc[name] = {};
         else console.log(" OSC socket already exists...");
-        connection = ids[client.id].osc[name];
+        connection = Id.list[client.id].osc[name];
 
         connection.transport = args[3];
         connection.osc_ver = args[4];
@@ -237,11 +235,11 @@ Handlers.osc = function(client, args) {
         });
         break;
       case 'send':
-        if ( ids[client.id].osc[name] === undefined ) {
+        if ( Id.list[client.id].osc[name] === undefined ) {
           console.log(" OSC socket doesn't exist...");
           break;
         }
-        connection = ids[client.id].osc[name];
+        connection = Id.list[client.id].osc[name];
 
         if (connection.socket.writable) {
           sendOSC(connection.socket, args[3]);
@@ -250,11 +248,11 @@ Handlers.osc = function(client, args) {
         }
         break;
       case 'close':
-        if ( ids[client.id].osc[name] === undefined ) {
+        if ( Id.list[client.id].osc[name] === undefined ) {
           console.log(" OSC socket doesn't exist...");
           break;
         }
-        connection = ids[client.id].osc[name];
+        connection = Id.list[client.id].osc[name];
         
         console.log(" Closing OSC socket...");
         connection.socket.end();
@@ -264,12 +262,14 @@ Handlers.osc = function(client, args) {
 
 
 
-function Client(number, ws) {
-    this.number = number;
+function Client(ws) {
+    this.number = Client.list.length;
     this.websocket = ws;
     this.id = undefined;
     this.handlers = Object.create(Handlers);
+    Client.list.push(this);
 }
+Client.list = [];
 Client.prototype.send = function() {
     if (this.websocket.readyState == WS.OPEN) {
       // console.log("Sending message - WebSocket "+this.number);
@@ -286,20 +286,19 @@ Client.prototype.websocket_status = function() {
     }
 };
 
-clients = [];
 
 
-
-function Id(id, client) {
-    this.id = id;
+function Id(client) {
+    this.id = Id.list.length;
     this.clients = [];
     if ( client !== undefined ) {
       this.clients.push(client);
+      client.id = this.id;
     }
     this.timeout = null;
+    Id.list.push(this);
 }
-
-ids = [];
+Id.list = [];
 
 
 
@@ -327,8 +326,7 @@ wss.on('connection', function (ws, req) {
     console.log("WebSocket Server: new connection:");
     console.log(" Client:", req.connection.remoteAddress);
     // see: https://stackoverflow.com/questions/14822708/how-to-get-client-ip-address-with-websocket-websockets-ws-library-in-node-js
-    var client = new Client(clients.length, ws);
-    clients.push(client);
+    var client = new Client(ws);
     console.log(" WS number:", client.number);
 
     ws.on('close', () => {
@@ -336,7 +334,7 @@ wss.on('connection', function (ws, req) {
       console.log("WebSocket ("+client.number+"): closed");
       // console.log(" Ending TCP socket...");
       // ws.socket.end();
-      delete clients[client.number];
+      delete Client.list[client.number];
     });
 
     ws.on('error', (err) => {
@@ -365,9 +363,9 @@ process.on('SIGINT', function() {
     // let's shut everything down!
     console.log();
     console.log("SIGINT Received - Shutting down...");
-    console.log("Total count of WebSocket Clients connected:", clients.length);
+    console.log("Total count of WebSocket Clients connected:", Client.list.length);
     console.log("Checking Clients list...");
-    clients.forEach(function(client, index){
+    Client.list.forEach(function(client, index){
       console.log(" WebSocket "+client.number+":", client.websocket_status());
 /*
       if (ws.socket !== undefined) {
