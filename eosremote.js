@@ -1,7 +1,14 @@
 const oscmsg = require("osc-msg");
 const net = require('net');
-const websocket = require('ws');
-
+const WS = require('ws');
+WS.states = ["Connecting", "Open", "Closing", "Closed"];
+WS.state_to_text = function(state) {
+  if ( WS.states[state] !== undefined ) {
+    return WS.states[state];
+  } else {
+    return "Unknown state (" + WS.states[state] + ")";
+  }
+};
 
 /****************
  * OSC Over TCP *
@@ -267,10 +274,16 @@ Handlers.osc = function(client, args) {
 function Client(number, ws) {
   this.number = number;
   this.websocket = ws;
+  this.websocket_status = function() { return WS.state_to_text(this.websocket.readyState) };
   this.id = undefined;
   this.handlers = Object.create(Handlers);
   this.send = function() {
-    this.websocket.send(JSON.stringify(arguments));
+    if (this.websocket.readyState == WS.OPEN) {
+      // console.log("Sending message - WebSocket "+this.number);
+      this.websocket.send(JSON.stringify(arguments));
+    } else {
+      console.log("Unable to send message - WebSocket "+this.number+":", this.websocket_status());
+    }
   };
 }
 
@@ -292,7 +305,7 @@ ids = [];
 
 
 
-var wss = new websocket.Server({
+var wss = new WS.Server({
     // host: "10.101.1.2",
     host: "192.168.1.2",
     port: 8081,
@@ -356,22 +369,7 @@ process.on('SIGINT', function() {
     console.log("Total count of WebSocket Clients connected:", clients.length);
     console.log("Checking Clients list...");
     clients.forEach(function(client, index){
-      switch (client.websocket.readyState) {
-        case websocket.CONNECTING:
-          console.log(" WebSocket "+client.number+": Connecting");
-          break;
-        case websocket.OPEN:
-          console.log(" WebSocket "+client.number+": Open");
-          break;
-        case websocket.CLOSING:
-          console.log(" WebSocket "+client.number+": Closing");
-          break;
-        case websocket.CLOSED:
-          console.log(" WebSocket "+client.number+": Closed");
-          break;
-        default:
-          console.log(" WebSocket "+client.number+": Unknown state ("+client.websocket.readyState+")");
-      }
+      console.log(" WebSocket "+client.number+":", client.websocket_status());
 /*
       if (ws.socket !== undefined) {
         if (ws.socket.pending) {
@@ -394,7 +392,7 @@ process.on('SIGINT', function() {
         }
       }
 */
-      if (client.websocket.readyState == websocket.CONNECTING || client.websocket.readyState == websocket.OPEN) {
+      if (client.websocket.readyState == WS.CONNECTING || client.websocket.readyState == WS.OPEN) {
         console.log("  Closing WebSocket...");
         client.websocket.close();
       }
