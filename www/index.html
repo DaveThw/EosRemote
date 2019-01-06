@@ -52,22 +52,27 @@ button {
     <span id="socketStatusStatus">???</span>
     <button onclick="connectWebSocket()">Re-connect WebSocket</button>
   </p>
+  <p>
+    <button onclick="sendIonPing()">OSC Ping (Client -> Ion)</button>
+    <span>Ping Time:</span>
+    <span id="pingTime">???</span>
+  </p>
  </div>
 
  <div id="messageArea">
-  <p id="messageLabel">OSC Message:</p>
+  <span id="messageLabel">OSC Message:</span>
   <pre id="address">???</pre>
   <pre id="args">???</pre>
  </div>
 
  <div>
-  <p>Command Line: <span data-osc-update-html="/eos/out/cmd">???</span></p>
-  <p>Background Command Line: <span data-osc-update-html="/eos/out/user/0/cmd">???</span></p>
-  <p>Current Cue: <span data-osc-update-html="/eos/out/active/cue/text">???</span></p>
-  <p>Progress: <span class="slider horizontal"><span data-osc-update-width="/eos/out/active/cue"></span></span></p>
-  <p>Pending Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
-  <p>Next Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span></p>
-  <p>User: <span data-osc-update-html="/eos/out/user">???</span></p>
+  Command Line: <span data-osc-update-html="/eos/out/cmd">???</span><br>
+  Background Command Line: <span data-osc-update-html="/eos/out/user/0/cmd">???</span><br>
+  Current Cue: <span data-osc-update-html="/eos/out/active/cue/text">???</span><br>
+  Progress: <span class="slider horizontal"><span data-osc-update-width="/eos/out/active/cue"></span></span><br>
+  Pending Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span><br>
+  Next Cue: <span data-osc-update-html="/eos/out/pending/cue/text">???</span><br>
+  User: <span data-osc-update-html="/eos/out/user">???</span><br>
  </div>
 
  <div>
@@ -147,10 +152,8 @@ function connectWebSocket() {
     osc.socket.onmessage = function (event) {
       message = JSON.parse(event.data)[0];
       console.log('Message from server:', message);
-      console.log('message[0]:', message[0]);
       switch (message[0]) {
         case 'osc':
-          console.log('message[3]:', message[3]);
           osc.elements.address.innerHTML = message[3].address;
           osc.elements.args.innerHTML = JSON.stringify(message[3].args);
           
@@ -249,7 +252,22 @@ function scanOSCElements() {
       if ( osc.addresses[element.dataset.oscUpdateWidth] === undefined) osc.addresses[element.dataset.oscUpdateWidth] = [];
       osc.addresses[element.dataset.oscUpdateWidth].push({func: updateOSCElementWidth, element: element});
     });
+    if ( osc.addresses["/eos/out/ping"] === undefined) osc.addresses["/eos/out/ping"] = [];
+    osc.addresses["/eos/out/ping"].push({func: updatePingTime, element: document.getElementById("pingTime")});
     console.log('Found elements interested in the following OSC addresses:', osc.addresses);
+}
+
+
+function sendIonPing() {
+    var currentTime = new Date();
+    sendOSC( { address: "/eos/ping", args: ""+currentTime.getTime() } );
+}
+function updatePingTime(element, messageArgs) {
+    var currentTime = new Date();
+    console.log('Ping Sent Time:', messageArgs[0]);
+    console.log('Ping Received Time:', currentTime.getTime());
+    console.log('Ping Time:', (currentTime.getTime() - messageArgs[0]));
+    element.innerHTML = (currentTime.getTime() - messageArgs[0]) + "mS";
 }
 
  </script>
