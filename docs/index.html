@@ -1874,6 +1874,10 @@
           for ( var page in faders.page) {
             faders.page[page].setValue(this.page==page ? 1 : 0);
           }
+          for (var fader=1; fader<=5; fader++) {
+            faders[fader].fader.setValue( 0 );
+            faders[fader].value.setValue( '0' );
+          }
         },
       }) );
     }
