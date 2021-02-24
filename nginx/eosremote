@@ -24,7 +24,7 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /home/pi/EosRemote_v2/www;
+	root /home/pi/www;
 
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.js;
@@ -35,6 +35,28 @@ server {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri $uri/ =404;
+	}
+
+	location /ws/ {
+		proxy_pass http://127.0.0.1:1880/ws/;
+		# need to set the following directives to proxy a websocket - see:
+		# https://www.nginx.com/blog/websocket-nginx/
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "Upgrade";
+		proxy_set_header Host $host;
+	}
+
+	location /node-red/ {
+		proxy_pass http://127.0.0.1:1880/;
+	}
+
+	location /node-red/comms {
+		proxy_pass http://127.0.0.1:1880/comms;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "Upgrade";
+		proxy_set_header Host $host;
 	}
 
 	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
