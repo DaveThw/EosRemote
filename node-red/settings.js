@@ -31,7 +31,7 @@ module.exports = {
     // By default, the Node-RED UI accepts connections on all IPv4 interfaces.
     // The following property can be used to listen on a specific interface. For
     // example, the following would only allow connections from the local machine.
-    //uiHost: "127.0.0.1",
+    uiHost: "127.0.0.1",
 
     // Retry time in milliseconds for MQTT connections
     mqttReconnectTime: 15000,
@@ -72,7 +72,7 @@ module.exports = {
     // The following property can be used to specifiy a different root path.
     // If set to false, this is disabled.
     //httpAdminRoot: '/admin',
-    httpAdminRoot: '/node-red',
+    //httpAdminRoot: '/node-red',
 
     // Some nodes, such as HTTP In, can be used to listen for incoming http requests.
     // By default, these are served relative to '/'. The following property
@@ -88,7 +88,7 @@ module.exports = {
     // following property can be used to identify a directory of static content
     // that should be served at http://localhost:1880/.
     //httpStatic: '/home/nol/node-red-dashboard/',
-    httpStatic: '/home/pi/www/',
+    //httpStatic: '/home/pi/www/',
 
     // Securing Node-RED
     // -----------------
@@ -116,12 +116,12 @@ module.exports = {
     // See the comment at the top of this file on how to load the `fs` module used by
     // this setting.
     //
-    https: {
-//        key: fs.readFileSync('/home/pi/.node-red/public/privatekey.pem'),
-//        cert: fs.readFileSync('/home/pi/.node-red/public/certificate.pem')
-        key: fs.readFileSync('/home/pi/EosRemote/ssl/server-key.pem'),
-        cert: fs.readFileSync('/home/pi/EosRemote/ssl/server-cert.pem')
-    },
+//    https: {
+////        key: fs.readFileSync('/home/pi/.node-red/public/privatekey.pem'),
+////        cert: fs.readFileSync('/home/pi/.node-red/public/certificate.pem')
+//        key: fs.readFileSync('/home/pi/EosRemote/ssl/server-key.pem'),
+//        cert: fs.readFileSync('/home/pi/EosRemote/ssl/server-cert.pem')
+//    },
 
     // The following property can be used to disable the editor. The admin API
     // is not affected by this option. To disable both the editor and the admin
