@@ -149,3 +149,39 @@ server {
 	server_name home.remcont.net;
 	return 302 https://$server_name$request_uri;
 }
+
+
+# This server block will redirect from:
+#  http://192.168.1.123/... to https://home.remcont.net/...
+server {
+	listen 80;
+	server_name 192.168.1.123;
+	return 302 https://home.remcont.net$request_uri;
+}
+
+
+# This server block should redirect from:
+#  https://192.168.1.123/... to https://home.remcont.net/...
+# Hmmm... for some reason, requests to https://192.168.1.123/ fail because the wrong
+#  certificate is sent (the remcont.net_ssl_certificate.cer file).  But put this one
+#  first (or make it the default_server), and this certificate gets sent for all
+#  requests (including https://home.remcont.net/)...
+server {
+	# listen 443 ssl default_server;
+	listen 443 ssl;
+	server_name 192.168.1.123;
+
+	# it seems that if we don't specify a certificate and key here that it
+	# defaults to using the certificate and key from the default server
+	# (ie. the one above!)
+	#ssl_certificate /home/pi/EosRemote/ssl/server-cert.pem;
+	#ssl_certificate_key /home/pi/EosRemote/ssl/server-key.pem;
+
+	#ssl_session_timeout 5m;
+
+	# ssl_protocols SSLv3 TLSv1;
+	# ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+	#ssl_prefer_server_ciphers on;
+
+	return 302 https://home.remcont.net$request_uri;
+}
