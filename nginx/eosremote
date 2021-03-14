@@ -145,7 +145,7 @@ server {
 # This server block will redirect from:
 #  http://home.remcont.net/... to https://home.remcont.net/...
 server {
-    listen 80;
-    server_name home.remcont.net;
-    return 302 https://$server_name$request_uri;
+	listen 80;
+	server_name home.remcont.net;
+	return 302 https://$server_name$request_uri;
 }
