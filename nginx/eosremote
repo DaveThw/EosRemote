@@ -166,6 +166,11 @@ server {
 #  certificate is sent (the remcont.net_ssl_certificate.cer file).  But put this one
 #  first (or make it the default_server), and this certificate gets sent for all
 #  requests (including https://home.remcont.net/)...
+# Ah... As noted here:
+# https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-http/#server-name-indication
+# SNI (used to work out which server is being requested, to send the right certificate)
+#  shouldn't be relied on to work with IP addresses
+# Maybe if we set up multiple IP addresses, for different SSL settings...
 server {
 	# listen 443 ssl default_server;
 	listen 443 ssl;
