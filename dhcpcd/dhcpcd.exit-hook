@@ -1,0 +1,64 @@
+logfile="/tmp/dhcpcd.exit-hook.log"
+#loglevel=1
+
+if [ "0$loglevel" -ge 1 ]; then
+	echo >> $logfile
+	echo >> $logfile
+	date >> $logfile
+	if [ "0$loglevel" -lt 4 ]; then
+		echo "interface = '$interface', if_up = '$if_up', if_down = '$if_down', ifcarrier = '$ifcarrier'" >> $logfile
+		echo "reason = '$reason'" >> $logfile
+		[ -n "$old_ip_address" ] && echo "old_ip_address = '$old_ip_address'" >> $logfile
+		[ -n "$new_ip_address" ] && echo "new_ip_address = '$new_ip_address'" >> $logfile
+	fi
+fi
+
+secondary_ips_file="/etc/dhcpcd.secondary-ips"
+
+secondary_ip() {
+	[ "0$loglevel" -ge 2 ] && echo "secondary_ip() start..." >> $logfile
+	local sec_ip_if sec_ip_addr do_up do_down
+	# inspiration for this while loop taken from here:
+	# https://stackoverflow.com/a/10929511
+	while read -r sec_ip_if sec_ip_addr <&3 || [ -n "$sec_ip_if" ]; do
+		# Ignore lines that begin with a '#', and blank lines:
+		if [ $(echo $sec_ip_if | head -c1) = "#" ] || [ "x$sec_ip_if" = "x" ]; then continue; fi
+		do_up=true
+		do_down=true
+		if [ $(echo $sec_ip_if | head -c1) = "+" ]; then
+			# only add the address on if_up
+			do_down=false
+			sec_ip_if="$(echo $sec_ip_if | tail -c+2)"
+		fi
+		[ "0$loglevel" -ge 3 ] && echo "interface = '$interface'; sec_ip_if = '$sec_ip_if'; sec_ip_addr = '$sec_ip_addr'" >> $logfile
+		if [ $(echo $sec_ip_if | head -c1) = "-" ]; then
+			# only remove the address on if_down
+			do_up=false
+			sec_ip_if="$(echo $sec_ip_if | tail -c+2)"
+		fi
+		if [ "x${interface}x" = "x${sec_ip_if}x" ]; then
+			if $if_up && $do_up; then
+				# interface is up - add secondary static ip address:
+				[ "0$loglevel" -ge 2 ] && echo "ip address add $sec_ip_addr dev $sec_ip_if" >> $logfile
+				ip address add $sec_ip_addr dev $sec_ip_if
+			elif $if_down && $do_down; then
+				# interface is down - delete secondary static ip address
+				[ "0$loglevel" -ge 2 ] && echo "ip address delete $sec_ip_addr dev $sec_ip_if" >> $logfile
+				ip address delete $sec_ip_addr dev $sec_ip_if
+			fi
+		fi
+	done 3< "$secondary_ips_file"
+	[ "0$loglevel" -ge 2 ] && echo "secondary_ip() end" >> $logfile
+}
+
+[ "0$loglevel" -ge 4 ] && echo "================" >> $logfile
+[ "0$loglevel" -ge 4 ] && echo "Environment Variables:" >> $logfile
+[ "0$loglevel" -ge 4 ] && printenv >> $logfile
+[ "0$loglevel" -ge 5 ] && echo "===============" >> $logfile
+[ "0$loglevel" -ge 5 ] && echo "Shell Variables:" >> $logfile
+[ "0$loglevel" -ge 5 ] && set >> $logfile
+
+[ "0$loglevel" -ge 2 ] && echo "===============" >> $logfile
+[ "0$loglevel" -ge 3 ] && echo "pre secondary_ip()" >> $logfile
+secondary_ip
+[ "0$loglevel" -ge 2 ] && echo "post secondary_ip()" >> $logfile
