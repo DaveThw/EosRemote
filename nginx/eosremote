@@ -206,3 +206,36 @@ server {
 
 	return 302 https://home.remcont.net$request_uri;
 }
+
+
+# This server block will redirect from:
+#  https://192.168.1.201:1880/... to https://home.remcont.net/...
+# And from:
+#  http://192.168.1.201:1880/...  to http://192.168.1.201/...
+# Note: we're specifying the IP address to bind to here, because the Node-Red
+#  backend server is binding to 127.0.0.1:1880, and if we don't specify an IP
+#  address nginx will try to bind to all addresses, including local loopback...
+# Note: also, it turns out that binding to a specific IP address is good
+#  because SNI can't be used reliably with IP addresses (see above)
+server {
+	listen 192.168.1.201:1880 ssl;
+	# server_name 192.168.1.201;
+	return 302 https://home.remcont.net$request_uri;
+	ssl_certificate /home/pi/EosRemote/ssl/server-cert.pem;
+	ssl_certificate_key /home/pi/EosRemote/ssl/server-key.pem;
+	#ssl_session_timeout 5m;
+	#ssl_prefer_server_ciphers on;
+
+	# if the user tries to access http://192.168.1.201:1880/... (note: http, not https)
+	#  then they will trigger an internal 497 error (which defaults to sending a
+	#  400 (Bad Request) response code) - so lets redirect them somewhere else instead...
+	# details found here:
+	#  https://serverfault.com/a/379906
+	#  http://nginx.org/en/docs/http/ngx_http_ssl_module.html#errors
+	# note: using error_page like this seems to default to returning a
+	#  302 (Moved Temporarily) response code - could specify 301 (Moved Permanently),
+	#  or something else, instead if we want...
+	#error_page 497 =302 http://192.168.1.201$request_uri;
+	#error_page 497 =301 http://192.168.1.201$request_uri;
+	error_page 497 http://192.168.1.201$request_uri;
+}
