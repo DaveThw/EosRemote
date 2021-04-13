@@ -3,6 +3,7 @@
 - [March 2018](#march-2018)
 - [June 2018](#june-2018)
 - [April 2021](#april-2021)
+- [April 2021 - Raspberry Pi 3B+](#april-2021---raspberry-pi-3b)
 
 
 -----------------------------------------------------------------------
@@ -656,4 +657,78 @@ Certificate:
 ~/EosRemote $ cd ~/.node-red
 ~/.node-red $ npm install
 ```
-  - (`npm install` took approx. 14mins - serialport had to fallback-to-build, which threw up a bunch of warnings, but seemed to succeed! - npm also gave a couple of warnings that the project file doesn't have a licence or repository field, or README data...)
+  - (`npm install` seemed to work (with a bunch of warnings), but took almost. 18hrs!..)
+- So, I've come to the conclusion that a RPi1 is not longer suitable for running EosRemote!  It looks like Reaspberry Pi OS (with Desktop) is [too much for an RPi1](https://www.raspberrypi.org/forums/viewtopic.php?t=296108#p1785570) - could maybe one day try [an older Raspbian image](https://downloads.raspberrypi.org/raspbian/images/)..?
+
+
+
+-----------------------------------------------------------------------
+
+
+## April 2021 - Raspberry Pi 3B+
+
+(Working on a Raspberry Pi 3B+, using March 2021 [Raspberry Pi OS (with Desktop)](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit) (release date: 2021-03-04), doing the set-up on 2021-04-13)
+
+- Flash latest [Raspberry Pi OS (with Desktop)](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit) onto an SD card (tested using the March 2021 image) using the [Raspberry Pi Imager](https://www.raspberrypi.org/software/) - note: the latest version has some dependancies that aren't available on my Chromebook/Gallium OS, so I downloaded a previous version (1.5) from [their downloads server](https://downloads.raspberrypi.org/imager/) - took ~5-10 mins?
+- Boot up the Raspberry Pi - you'll need a monitor and mouse connected (and a keyboard to set up a password)
+- It'll resize the root partition and re-boot
+- On first boot, after short while you'll get to the desktop, and the 'Welcome to Raspbery Pi' initial set-up wizard thingy:
+  - Set Country/location details first (Country: United Kingdom / Language: British English / Timezone: London - no need to tick 'Use English language' or 'Use US keyboard')
+  - Change default password (needs a keyboard!..) (just click 'next' to skip for now)
+  - Tick the box to say 'This screen shows a black border around the desktop' - this will disable Underscan, after the next reboot (it's useful to Disable Underscan for VNC, as Underscan just reduces the resolution of the display - 1280x720 becomes 1184x624! But... see below :wink:)
+  - Select a Wireless Network if you want to set one up now (needs a keyboard to type in the password!)
+  - Check for updates (click 'Next') - takes a little while (~8 minutes on an RPi3B+, a month after the release)
+  - Initial setup is complete - press 'Restart' to reboot!  (Or 'Later' to do it, well... later!)
+  - You may get a 'Raspbian has been updated' message, telling you some configuration files have been overwritten...  (backups in ~/oldconffiles)
+- From the Applications menu, choose Preferences -> Raspberry Pi Configuration
+  - Under Display, choose a fixed resolution (if you want to connect with VNC, without a monitor connected) - maybe CEA mode 4 1280x720..?
+  - Maybe also turn off 'Screen Blanking' (not sure if this affects VNC?)
+  - Under Interfaces, turn on SSH and VNC
+  - Reboot
+- You should now be able to connect using VNC to the Pi's IP address, display 0 - eg 192.168.1.80:0 - and you should therefore be able to disconnect the monitor and mouse (and keyboard) if you wish, and complete the rest of the setup remotely.
+- SSH will warn you that you haven't changed the default password for the 'pi' user - this is a security risk!
+  - Applications menu -> Preferences -> Raspberry Pi Configuration -> System -> Change Password
+- If you want to be cunning, you can use Underscan to tweak the resolution of the VNC display - for my current laptop, 1280x720 is a little bit too tall:
+  - Edit `/boot/config.txt` - needs root access, so in a terminal do something like `sudo mousepad /boot/config.txt`
+  - If not already done, comment out the disable_overscan line: `#disable_overscan=1`
+  - Overscan seems to default to taking 48 pixels off the top, bottom, left and right of the display.  You can adjust this with the next few lines - a negative number will reduce the overscan, positive will increase it further.
+  - For example, to have the full width of your configured resolution, use `overscan_left=-48` and `overscan_right=-48`
+  - And for me, to reduce the height by 9 pixels, use something like `overscan_top=-48` and `overscan_bottom=-39`
+- Applications menu -> Preferences -> Raspberry Pi Configuration -> System -> Hostname
+  - remcont
+  - Reboot
+- Maybe look at Applications menu -> Preferences -> Raspberry Pi Configuration -> Localisation
+  - Wireless LAN Country: GB Britain (UK)
+- Install Node-RED:
+  - See <https://nodered.org/docs/hardware/raspberrypi>
+  - Run `bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)`
+  - This might take a short while - it took 4mins on my RPi3B+
+
+- VNC Server -> Sign In to account
+  - useful for connecting from VNC Connect client!
+
+- Check that node.js and npm are installed:
+  - `~ $ node -v` -> `v.12.22.1`
+  - `~ $ npm -v` -> `6.14.12`
+
+- To [use SSH for GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh):
+  - First, create a new SSH public/private key pair: `ssh-keygen -t ed25519 -C "ssh@dave.thwaites.org.uk"`
+    - Should be fine to save the key with the default filename (unless you already have another key set up)
+    - Set a passphrase (or leave it blank...)
+  - Then open `~/.ssh/id_ed25519.pub` (your public key) and copy the contents
+  - Then add the contents as a new [public key on GitHub](https://github.com/settings/keys)
+
+- Install EosRemote
+  - follow (and update...) [my instructions](./Installing.md)!..
+```shell
+~ $ cd
+~ $ git clone git@github.com:DaveThw/EosRemote.git
+~ $ cd ~/EosRemote/
+~/EosRemote $ git checkout use-nginx
+~/EosRemote $ ln -sb $(pwd)/node-red/package.json ~/.node-red/
+~/EosRemote $ ln -sb $(pwd)/node-red/settings.js ~/.node-red/
+~/EosRemote $ cd ~/.node-red
+~/.node-red $ npm install
+```
+  - (`npm install` seemed to work (with a bunch of warnings), and took ~50s!..)
+
