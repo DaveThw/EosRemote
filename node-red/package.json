@@ -2,12 +2,13 @@
   "name": "node-red-project",
   "description": "A Node-RED Project",
   "version": "0.0.1",
+  "private": true,
   "dependencies": {
     "node-red-contrib-osc": "^1.0.0",
     "node-red-dashboard": "^2.19.3",
-    "node-red-node-ping": "0.0.13",
-    "node-red-node-random": "0.0.8",
-    "node-red-node-smooth": "0.0.11",
-    "node-red-node-wol": "0.0.8"
+    "node-red-node-ping": "*",
+    "node-red-node-random": "*",
+    "node-red-node-smooth": "*",
+    "node-red-node-wol": "*"
   }
 }
