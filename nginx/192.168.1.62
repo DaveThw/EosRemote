@@ -1,0 +1,19 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# http://wiki.nginx.org/Pitfalls
+# http://wiki.nginx.org/QuickStart
+# http://wiki.nginx.org/Configuration
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+
+# This server block will redirect from:
+#  http://192.168.1.62/... to https://home.remcont.net/...
+server {
+	listen 80;
+	server_name 192.168.1.62;
+	return 302 https://home.remcont.net$request_uri;
+}
+

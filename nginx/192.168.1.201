@@ -1,0 +1,85 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# http://wiki.nginx.org/Pitfalls
+# http://wiki.nginx.org/QuickStart
+# http://wiki.nginx.org/Configuration
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+
+# This config file should now redirect from:
+#  https://192.168.1.201/...      to https://home.remcont.net/...
+# and
+#  https://192.168.1.201:1880/... to https://home.remcont.net/eos/...
+# and
+#  http://192.168.1.201:1880/...  to http://192.168.1.201/eos/...
+
+
+# This server block should redirect from:
+#  https://192.168.1.201/... to https://home.remcont.net/...
+# Hmmm... for some reason, requests to https://192.168.1.123/ fail because the wrong
+#  certificate is sent (the remcont.net_ssl_certificate.cer file).  But put this one
+#  first (or make it the default_server), and this certificate gets sent for all
+#  requests (including https://home.remcont.net/)...
+# Ah... As noted here:
+# https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-http/#server-name-indication
+# SNI (used to work out which server is being requested, to send the right certificate)
+#  shouldn't be relied on to work with IP addresses
+# Maybe if we set up multiple IP addresses, for different SSL settings...
+
+# This server block should now redirect from:
+#  https://192.168.1.201/... to https://home.remcont.net/...
+server {
+	#listen 192.168.1.201:80;
+	listen 192.168.1.201:443 ssl;
+	#server_name 192.168.1.201;
+
+	# if we don't specify a certificate and key here that it
+	# defaults to using the certificate and key from the default server
+	# (ie. the one above!)
+	ssl_certificate /home/pi/EosRemote/ssl/server-cert.pem;
+	ssl_certificate_key /home/pi/EosRemote/ssl/server-key.pem;
+
+	#ssl_session_timeout 5m;
+
+	# ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	# ssl_ciphers HIGH:!aNULL:!MD5;
+	#ssl_prefer_server_ciphers on;
+
+	return 302 https://home.remcont.net$request_uri;
+}
+
+
+# This server block will redirect from:
+#  https://192.168.1.201:1880/... to https://home.remcont.net/eos/...
+# And from:
+#  http://192.168.1.201:1880/...  to http://192.168.1.201/eos/...
+# Note: we're specifying the IP address to bind to here, because the Node-Red
+#  backend server is binding to 127.0.0.1:1880, and if we don't specify an IP
+#  address nginx will try to bind to all addresses, including local loopback...
+# Note: also, it turns out that binding to a specific IP address is good
+#  because SNI can't be used reliably with IP addresses (see above)
+server {
+	listen 192.168.1.201:1880 ssl;
+	# server_name 192.168.1.201;
+	return 302 https://home.remcont.net/eos$request_uri;
+	ssl_certificate /home/pi/EosRemote/ssl/server-cert.pem;
+	ssl_certificate_key /home/pi/EosRemote/ssl/server-key.pem;
+	#ssl_session_timeout 5m;
+	#ssl_prefer_server_ciphers on;
+
+	# if the user tries to access http://192.168.1.201:1880/... (note: http, not https)
+	#  then they will trigger an internal 497 error (which defaults to sending a
+	#  400 (Bad Request) response code) - so lets redirect them somewhere else instead...
+	# details found here:
+	#  https://serverfault.com/a/379906
+	#  http://nginx.org/en/docs/http/ngx_http_ssl_module.html#errors
+	# note: using error_page like this seems to default to returning a
+	#  302 (Moved Temporarily) response code - could specify 301 (Moved Permanently),
+	#  or something else, instead if we want...
+	#error_page 497 =302 http://192.168.1.201/eos$request_uri;
+	#error_page 497 =301 http://192.168.1.201/eos$request_uri;
+	error_page 497 http://192.168.1.201/eos$request_uri;
+}
