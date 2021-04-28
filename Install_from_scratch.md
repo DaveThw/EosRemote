@@ -732,3 +732,23 @@ Certificate:
 ```
   - (`npm install` seemed to work (with a bunch of warnings), and took ~50s!..)
 
+- Set up nginx:
+  - Install nginx: `sudo apt install nginx` (took 40s)
+  - De-activate default site config: `sudo rm /etc/nginx/sites-enabled/default`
+  - Transfer private key into `/EosRemote/ssl` (not stored in github repository!)
+  - IP-address-specific config files might need updating, to match the IP addresses in use!..
+  - Activate our config file(s):
+```shell
+~ $ cd ~/EosRemote/
+~/EosRemote $ sudo ln -s $(pwd)/docs ~/www
+~/EosRemote $ sudo ln -s $(pwd)/nginx/* /etc/nginx/sites-enabled/
+~/EosRemote $ sudo nginx -t
+~/EosRemote $ sudo nginx -s reload
+```
+
+- Set up alternative IPs:
+  - `sudo ln -s $(pwd)/dhcpcd/* /etc/`
+  - modify `~/EosRemote/dhcpcd/dhcpcd.secondary-ips` if needed
+  - `ip address`
+  - `sudo ip link set dev eth0 down; sleep 5; sudo ip link set dev eth0 up`
+  - `ip address`
