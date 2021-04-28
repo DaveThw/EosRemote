@@ -1,0 +1,62 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# http://wiki.nginx.org/Pitfalls
+# http://wiki.nginx.org/QuickStart
+# http://wiki.nginx.org/Configuration
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+
+server {
+	listen 80;
+	listen [::]:80;
+
+	server_name dimmers.trbse.remcont.net;
+
+	#root /home/pi/www;
+
+	# Add index.php to the list if you are using PHP
+	#index index.html index.htm index.js;
+
+	location / {
+		proxy_pass http://10.101.101.101/;
+		proxy_set_header Host      $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		# add_header X-UA-Compatible IE=6;
+	}
+
+#	# catch the error if the back-end server (Node-RED) isn't running
+#	# note: using error_page like this seems to default to returning a
+#	#  302 (Moved Temporarily) response code
+#	error_page 502 /lx-offline.html;
+
+}
+
+# The dimmers proxy doesn't work over HTTPS for two reasons:
+#  - the SSL sertificate is for *.remcont.net - this doesn't seems to cover
+#    sub-sub-domains (eg dimmers.trbse.remcont.net)
+#  - the (ancient) scripts on the servers web pages fetch resources over
+#    HTTP, and IE won't let you do that from an HTTPS page!
+# So... lets downgrade any attempts to access dimers.trbse.remcont.net over
+# HTTPS to old-fashioned HTTP!..
+server {
+	# SSL configuration
+	#
+	listen 443 ssl;
+	listen [::]:443 ssl;
+
+	server_name dimmers.trbse.remcont.net;
+
+	ssl_certificate /home/pi/EosRemote/ssl/remcont.net_ssl_certificate.cer;
+	ssl_certificate_key /home/pi/EosRemote/ssl/_.remcont.net_private_key.key;
+
+	ssl_session_timeout 5m;
+
+	# ssl_protocols SSLv3 TLSv1;
+	# ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+	#ssl_prefer_server_ciphers on;
+
+	return 302 http://$host$request_uri;
+}
