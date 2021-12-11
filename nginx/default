@@ -106,6 +106,10 @@ server {
 		proxy_set_header Host $host;
 	}
 
+	location /ola/ {
+		proxy_pass http://127.0.0.1:9090/;
+	}
+
 	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
 	#
 	#location ~ \.php$ {
