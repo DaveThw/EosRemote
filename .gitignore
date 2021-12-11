@@ -2,3 +2,5 @@ node-red/.flows.json.backup
 ssl/CA
 ssl/server-csr.pem
 ssl/*private_key*
+htpasswd
+passwd.txt
