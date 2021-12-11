@@ -12,10 +12,15 @@
 # eth0 192.168.1.102/24 broadcast 192.168.1.255
 # -eth0 192.168.1.103/24
 
+# Note: an interface can be brought down (and up) from a terminal with something like:
+# sudo ifconfig wlan0 down; sleep 10; sudo ifconfig wlan0 up
+
 eth0 10.101.1.2/16
 eth0 10.101.1.3/16
-wlan0 192.168.1.2/24
-wlan0 192.168.1.3/24
+eth1 192.168.1.2/24
+eth1 192.168.1.3/24
+#wlan0 192.168.1.2/24
+#wlan0 192.168.1.3/24
 
 #eth0 192.168.1.201/24
 #eth0 192.168.1.202/24
